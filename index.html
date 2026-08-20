@@ -463,7 +463,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <nav class="tabs"><div class="wrap">
   <a href="#" data-tab="home"><span class="emo">🏘️</span>홈</a>
   <a href="#/tax" data-tab="tax"><span class="emo">📊</span>세금 성적표</a>
-  <a href="#/spot" data-tab="spot"><span class="emo">🏪</span>가게 흥망사</a>
+  <a href="#/spot" data-tab="spot"><span class="emo">🏪</span>동네 가게</a>
   <a href="#/brand" data-tab="brand"><span class="emo">🏷️</span>브랜드 지도</a>
 </div></nav>
 <main id="app" class="wrap"><div class="skel">불러오는 중이에요…</div></main>
@@ -499,8 +499,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=73',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=73',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=74',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=74',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -557,7 +557,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=73';
+      var s=document.createElement('script'); s.src='app.js?v=74';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);

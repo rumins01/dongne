@@ -1315,14 +1315,6 @@ function bizSectionsHTML(u, key, opts){
   opts = opts || {};
   var nm=key.split('|')[1];
   var h = '';
-  h += '<section><h2><span class="emo">🏪</span>가게 흥망사 <small>인허가 데이터 · 기준 2026-08</small></h2>';
-  h += '<p class="muted" style="margin:-6px 0 12px">개업·폐업 신고 전 이력으로 계산했어요. 사장님이 바뀌어도 인허가가 유지되면 같은 가게로 셉니다.</p>';
-  CAT_GROUPS.forEach(function(G){
-    var t = catTable(u, G[1]);
-    if (!t) return;
-    h += '<div class="rule-card" style="margin-bottom:10px; overflow-x:auto"><h3 style="border-bottom:2px solid var(--ink); padding-bottom:7px; margin-bottom:8px">'+esc(G[0])+'</h3>'+t+'</div>';
-  });
-  h += '<p class="fine">"영업 중 대비"는 2025년 순증감 ÷ 현재 영업 중 업소 수예요. 폐업 중위 기간은 이미 폐업한 업소 기준이라, 오래 버티는 중인 가게가 많을수록 실제 수명은 더 길어요.</p></section>';
   var upKeys = Object.keys(u.up||{});
   if (upKeys.length){
     h += '<section><h2><span class="emo">🍜</span>어떤 음식점이 많을까 <small>업태구분 · 영업 중 상위</small></h2><div class="rule-card" style="overflow-x:auto"><table class="tn"><tr><th>업태</th><th class="right">영업 중</th><th class="right">2025 개업</th><th class="right">2025 폐업</th><th class="right">순증감</th></tr>';
@@ -1346,6 +1338,14 @@ function bizSectionsHTML(u, key, opts){
   }
   h += '<div id="brandBox"></div>';
   h += '<div id="churnBox"></div>';
+  h += '<section><h2><span class="emo">🏪</span>가게 흥망사 <small>인허가 데이터 · 기준 2026-08</small></h2>';
+  h += '<p class="muted" style="margin:-6px 0 12px">개업·폐업 신고 전 이력으로 계산했어요. 사장님이 바뀌어도 인허가가 유지되면 같은 가게로 셉니다.</p>';
+  CAT_GROUPS.forEach(function(G){
+    var t = catTable(u, G[1]);
+    if (!t) return;
+    h += '<div class="rule-card" style="margin-bottom:10px; overflow-x:auto"><h3 style="border-bottom:2px solid var(--ink); padding-bottom:7px; margin-bottom:8px">'+esc(G[0])+'</h3>'+t+'</div>';
+  });
+  h += '<p class="fine">"영업 중 대비"는 2025년 순증감 ÷ 현재 영업 중 업소 수예요. 폐업 중위 기간은 이미 폐업한 업소 기준이라, 오래 버티는 중인 가게가 많을수록 실제 수명은 더 길어요.</p></section>';
   return h;
 }
 function bindBizSections(u, key){
