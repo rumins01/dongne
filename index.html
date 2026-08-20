@@ -216,6 +216,17 @@ tbody tr:hover td, table tr:hover td{background:var(--bg2)}
   border-top:1px dashed var(--rule2); font-size:11.5px; color:var(--ink3); font-weight:600}
 .hotrow b{font-size:12px; color:var(--ink); text-align:right; font-weight:700; letter-spacing:-.02em}
 
+
+.gulist{display:grid; grid-template-columns:1fr 1fr; gap:0 26px; border-top:1px solid var(--rule)}
+.gurow{display:flex; align-items:center; gap:9px; padding:10px 2px; border-bottom:1px solid var(--rule2); font-size:13.5px}
+.gurow:hover{background:var(--bg2)}
+.gudot{width:8px; height:8px; border-radius:2px; flex-shrink:0}
+.gunm{flex:0 0 27%; font-weight:700; letter-spacing:-.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.gubar{flex:1; height:6px; background:var(--rule2); border-radius:999px; overflow:hidden; min-width:30px}
+.gubar i{display:block; height:100%; border-radius:999px}
+.guv{width:50px; text-align:right; font-size:13px; font-weight:800; letter-spacing:-.03em}
+.gupc{width:62px; text-align:right; font-size:12.5px; color:var(--ink3); font-weight:600}
+
 /* ---------- map ---------- */
 .taxrow{display:grid; grid-template-columns:1.05fr .95fr; gap:16px; align-items:stretch}
 @media(max-width:860px){.taxrow{grid-template-columns:1fr}}
@@ -380,6 +391,10 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
   .footnote-btn{padding:8px 13px}
   .taxleft,.taxright{padding:14px}
               .lbn{flex-basis:40%}
+  .gulist{grid-template-columns:1fr; gap:0}
+  .gunm{flex-basis:30%}
+  .guv{width:46px; font-size:12.5px}
+  .gupc{width:56px; font-size:11.5px}
   .gdbar{height:26px}
   .gseg i{font-size:11.5px}
   .gitem{padding:9px 6px 4px}
@@ -470,8 +485,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=69',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=69',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=70',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=70',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -528,7 +543,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=69';
+      var s=document.createElement('script'); s.src='app.js?v=70';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);

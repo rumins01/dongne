@@ -567,14 +567,24 @@ function sidoBody(sk, subTitle){
   var kids = Object.keys(D.basic).filter(function(cd){ return D.basic[cd].sido===sk; });
   if (kids.length){
     kids.sort(function(a,b2){ return D.basic[a].name.localeCompare(D.basic[b2].name, 'ko'); });
-    h += '<section><h2><span class="emo">🏘️</span>'+esc(sk)+'의 시·군·구 <small>가나다순 · '+kids.length+'곳</small></h2><div class="grid g4">';
+    var jmax = 0;
+    kids.forEach(function(cd){ var j=D.basic[cd].jarip25; if(j!=null&&j>jmax) jmax=j; });
+    if (!jmax) jmax = 1;
+    h += '<section><h2><span class="emo">🏘️</span>'+esc(sk)+'의 시·군·구 <small>가나다순 · '+kids.length+'곳 · 막대는 '+esc(sk)+' 안에서 견준 재정자립도</small></h2>';
+    h += '<div class="gulist">';
     kids.forEach(function(cd){
       var bb = D.basic[cd];
-      h += '<a class="sido-card" href="#/gu/'+cd+'"><div class="nm" style="font-size:14.5px">'+esc(bb.name)+'</div>';
-      h += '<div class="row tn"><span>자립도</span><b>'+pct(bb.jarip25)+'</b></div>';
-      h += '<div class="row tn"><span>1인당 지방세</span><b>'+(bb.pc26?fmtManFromChun(bb.pc26.pc):'—')+'</b></div></a>';
+      var g = bb.report && bb.report.grade;
+      var col = g ? GRADE_FILL[g] : 'var(--ink3)';
+      h += '<a class="gurow" href="#/gu/'+cd+'">';
+      h += '<span class="gudot" style="background:'+col+'"'+(g?' title="'+g+'등급"':'')+'></span>';
+      h += '<span class="gunm">'+esc(bb.name)+'</span>';
+      h += '<span class="gubar"><i style="width:'+(bb.jarip25!=null?(bb.jarip25/jmax*100).toFixed(0):0)+'%; background:'+col+'"></i></span>';
+      h += '<b class="guv tn">'+pct(bb.jarip25)+'</b>';
+      h += '<span class="gupc tn">'+(bb.pc26?fmtManFromChun(bb.pc26.pc):'—')+'</span>';
+      h += '</a>';
     });
-    h += '</div>'+(sk==='서울'?'<p class="muted" style="margin-top:10px">서울 자치구는 <b>상권 이야기</b>도 있어요 — 구 페이지에서 이어져요.</p>':'')+'</section>';
+    h += '</div><p class="fine">왼쪽 점은 세금 성적표 등급, 막대와 %는 재정자립도(2025), 오른쪽은 1인당 지방세(2026 예산)예요.</p>'+(sk==='서울'?'<p class="muted" style="margin-top:10px">서울 자치구는 <b>상권 이야기</b>도 있어요 — 구 페이지에서 이어져요.</p>':'')+'</section>';
   }
   return h;
 }
