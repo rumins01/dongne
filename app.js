@@ -252,6 +252,13 @@ function bindHomeMap(){
   });
   requestAnimationFrame(function(){ setVB(cur.slice()); });
 }
+function expandGrade(btn){
+  var box = btn.parentNode;
+  var rows = box.querySelectorAll('.lbmore');
+  for (var i=0;i<rows.length;i++) rows[i].className = rows[i].className.replace(' lbmore','');
+  box.className += ' expanded';
+  btn.parentNode.removeChild(btn);
+}
 function setHomeGrade(g){ HOME_GRADE = (HOME_GRADE===g)? null : g; renderHome(); var el=document.getElementById('gradeBox'); if (el) el.scrollIntoView({block:'start'}); }
 function fillSidoBiz(N){
   var agg = {};
@@ -356,11 +363,15 @@ function renderHome(){
     var hits = withRep.filter(function(b){ return b.report.grade===HOME_GRADE; })
       .sort(function(a,b){ return b.report.score-a.report.score; });
     h += '<div class="callout" style="padding:9px 12px; margin-bottom:10px; font-size:12.5px; display:flex; justify-content:space-between; align-items:center"><span><b style="color:'+GRADE_FILL[HOME_GRADE]+'">'+HOME_GRADE+'등급</b> '+hits.length+'곳 · 점수 높은 순</span><button class="footnote-btn" onclick="setHomeGrade(null)">전체 보기 ✕</button></div>';
-    hits.forEach(function(b){
-      h += '<a href="#/gu/'+b.cd+'" class="lbrow"><span class="lbn">'+esc(b.sido)+' '+esc(b.name)+'</span>';
+    var SHOWN = 10;
+    hits.forEach(function(b, ix){
+      h += '<a href="#/gu/'+b.cd+'" class="lbrow'+(ix>=SHOWN?' lbmore':'')+'"><span class="lbr tn">'+(ix+1)+'</span><span class="lbn">'+esc(b.sido)+' '+esc(b.name)+'</span>';
       h += '<span class="lbb"><i style="width:'+b.report.score.toFixed(0)+'%; background:'+GRADE_FILL[HOME_GRADE]+'"></i></span>';
       h += '<b class="tn lbv">'+b.report.score.toFixed(0)+'</b></a>';
     });
+    if (hits.length > SHOWN){
+      h += '<button class="lbmorebtn" onclick="expandGrade(this)">나머지 '+(hits.length-SHOWN)+'곳 더보기</button>';
+    }
   } else {
     var rank = withRep.slice().sort(function(a,b){ return b.report.score-a.report.score; });
     h += '<div class="lbhead"><span class="lbdot" style="background:'+GRADE_FILL.A+'"></span>잘 걷고 잘 버티는 곳<em>상위 4</em></div>';
