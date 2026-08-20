@@ -277,8 +277,8 @@ function bindHomeMap(){
   var drag = null;
   svg.addEventListener('pointerdown', function(e){
     if (PZ.active){ drag=null; return; }
-    /* 홈 지도는 한 손가락을 페이지 스크롤에 양보한다 — 지도 이동은 마우스나 두 손가락으로 */
-    drag = {x:e.clientX, y:e.clientY, vb:cur.slice(), target:e.target.closest&&e.target.closest('path.mn'), moved:false, id:e.pointerId, pan:e.pointerType!=='touch'};
+    /* 한 손가락으로도 지도를 옮길 수 있어요. 4px 넘게 움직여야 이동으로 보고, 그 안이면 탭으로 처리해요. */
+    drag = {x:e.clientX, y:e.clientY, vb:cur.slice(), target:e.target.closest&&e.target.closest('path.mn'), moved:false, id:e.pointerId, pan:true};
   });
   svg.addEventListener('pointermove', function(e){
     if (PZ.active){ drag=null; return; }

@@ -267,7 +267,8 @@ tbody tr:hover td, table tr:hover td{background:var(--bg2)}
 @media(max-width:860px){.taxrow{grid-template-columns:1fr}}
 .taxleft,.taxright{background:var(--panel); border:1px solid var(--rule); border-radius:var(--r); padding:16px; box-shadow:var(--sh);
   display:flex; flex-direction:column; min-height:0}
-#homeMap{touch-action:pan-y} /* 한 손가락은 페이지 스크롤, 두 손가락은 지도 확대·축소 */
+#homeMap{touch-action:none} /* 한 손가락은 페이지 스크롤, 두 손가락은 지도 확대·축소 */
+#homeMap{touch-action:none}
 #homeMap .mn{stroke:var(--panel); stroke-width:.7; cursor:pointer; transition:opacity .15s}
 #homeMap .mn:hover{opacity:1 !important; stroke:var(--ink); stroke-width:1.4}
 #homeMap .sd{fill:none; stroke:var(--ink3); stroke-width:.9; opacity:.5; pointer-events:none}
@@ -338,7 +339,7 @@ details.metric summary::-webkit-details-marker{display:none}
 
 .chart{width:100%}
 .chart text{font-family:inherit; letter-spacing:normal}
-#map-wrap{position:relative; background:var(--panel); border:1px solid var(--rule); border-radius:var(--r); overflow:hidden; box-shadow:var(--sh)}
+#map-wrap{touch-action:none; position:relative; background:var(--panel); border:1px solid var(--rule); border-radius:var(--r); overflow:hidden; box-shadow:var(--sh)}
 #map{display:block; width:100%; touch-action:none; cursor:grab}
 #map path.mn{stroke:var(--panel); stroke-width:.6; vector-effect:non-scaling-stroke; cursor:pointer}
 #map path.mn:hover{filter:brightness(1.1)}
@@ -576,8 +577,15 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <footer><div class="wrap" id="foot"></div></footer>
 <script>
 (function(){
+  function inMap(el){
+    while (el && el !== document){
+      if (el.id === 'map' || el.id === 'homeMap' || el.id === 'map-wrap') return true;
+      el = el.parentNode;
+    }
+    return false;
+  }
   ['gesturestart','gesturechange','gestureend'].forEach(function(t){
-    document.addEventListener(t, function(e){ e.preventDefault(); }, {passive:false});
+    document.addEventListener(t, function(e){ if (inMap(e.target)) return; e.preventDefault(); }, {passive:false});
   });
   var last=0;
   document.addEventListener('touchend', function(e){
@@ -586,7 +594,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
     last=now;
   }, {passive:false});
   document.addEventListener('touchmove', function(e){
-    if (e.touches && e.touches.length>1) e.preventDefault();  /* 두 손가락 핀치 차단 */
+    if (e.touches && e.touches.length>1 && !inMap(e.target)) e.preventDefault();  /* 지도 밖에서만 핀치 차단 */
   }, {passive:false});
 })();
 </script>
@@ -604,8 +612,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=79',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=79',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=81',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=81',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
