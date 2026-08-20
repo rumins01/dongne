@@ -9,9 +9,13 @@
 <meta name="description" content="민선 9기 광역단체장의 공약과 2026년 예산, 시군구 226곳 세금 성적표, 전국 67개 업종의 개폐업까지. 공공데이터 원본으로 읽는 우리동네 이야기.">
 <meta property="og:title" content="우리동네 이야기 - 단체장의 약속과 예산, 세금 성적표, 가게 흥망사">
 <meta property="og:description" content="민선 9기 단체장 공약 87건과 2026 예산, 시군구 226곳 세금 성적표, 전국 67개 업종의 흥망까지. 공공데이터 원본으로 읽는 동네 이야기.">
+<link rel="icon" href="favicon.svg?v=1" type="image/svg+xml">
+<link rel="icon" href="favicon.png?v=1" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+<meta name="theme-color" content="#2456E8">
 <link rel="canonical" href="https://rumins01.github.io/dongne/">
 <meta property="og:url" content="https://rumins01.github.io/dongne/">
-<meta property="og:image" content="https://rumins01.github.io/dongne/og.png">
+<meta property="og:image" content="https://rumins01.github.io/dongne/og.png?v=2">
 <meta property="og:site_name" content="우리동네 이야기">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:type" content="website">
@@ -145,6 +149,7 @@ a.kpi:hover{background:var(--bg2)}
 .chiprow{display:flex; gap:7px; flex-wrap:wrap}
 
 /* ---------- table ---------- */
+.cemo{display:inline-block; width:1.35em; margin-right:2px; font-size:.95em; line-height:1; text-align:center; opacity:.95}
 table{width:100%; border-collapse:collapse; font-size:13.5px}
 th{text-align:left; font-weight:600; color:var(--ink3); font-size:12px; padding:0 10px 9px; border-bottom:1px solid var(--rule);
   letter-spacing:-.01em; white-space:nowrap}
@@ -433,6 +438,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
   th[style*="min-width"]{min-width:0 !important}
   /* 숫자 토큰은 쪼개지 않는다 (keep-all + overflow-wrap:normal) */
   .tbv{white-space:nowrap}
+  .cemo{width:1.2em; margin-right:1px; font-size:.9em}
   .tbar{gap:5px}
   .tbar .track{display:none}
   .tbar .tbv{width:auto; font-size:12.5px}
@@ -460,9 +466,9 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <main id="app" class="wrap"><div class="skel">불러오는 중이에요…</div></main>
 <div id="gtip"></div>
 <footer><div class="wrap" id="foot"></div></footer>
-<script src="data.js?v=57"></script>
-<script src="map.js?v=57"></script>
-<script src="app.js?v=57"></script>
+<script src="data.js?v=58"></script>
+<script src="map.js?v=58"></script>
+<script src="app.js?v=58"></script>
 <script>
 /* 화면 전체 핀치/더블탭 확대 차단 (iOS Safari는 user-scalable=no를 무시) */
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){

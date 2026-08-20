@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="우리동네 이야기">
+  <rect width="64" height="64" rx="14" fill="#2456E8"/>
+  <!-- 왼쪽 낮은 건물 -->
+  <rect x="12" y="35" width="11" height="16" rx="2" fill="#FFFFFF" opacity=".72"/>
+  <!-- 가운데 집: 지붕 + 몸통 (동네) -->
+  <path d="M32 15 L45 26 L19 26 Z" fill="#FFFFFF"/>
+  <rect x="24" y="26" width="16" height="25" rx="2" fill="#FFFFFF"/>
+  <rect x="29" y="36" width="6" height="15" rx="1.2" fill="#2456E8"/>
+  <!-- 오른쪽 중간 건물 -->
+  <rect x="41" y="29" width="11" height="22" rx="2" fill="#FFFFFF" opacity=".86"/>
+  <!-- 바닥선 -->
+  <rect x="10" y="51" width="44" height="3" rx="1.5" fill="#FFFFFF" opacity=".55"/>
+</svg>
