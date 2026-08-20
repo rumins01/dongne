@@ -149,13 +149,15 @@ a.kpi:hover{box-shadow:var(--sh-h); transform:translateY(-3px)}
 /* ---------- chips / tags ---------- */
 .tag{display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px;
   border:1px solid var(--rule); color:var(--ink2); background:var(--panel); letter-spacing:-.01em}
-.chip{display:inline-flex; align-items:center; gap:5px; font-size:13.5px; font-weight:600; padding:8px 14px; border-radius:999px;
+.chip{font-family:inherit; display:inline-flex; align-items:center; gap:5px; font-size:13.5px; font-weight:600; padding:8px 14px; border-radius:999px;
   border:1px solid var(--rule); background:var(--panel); color:var(--ink2); cursor:pointer; transition:.15s; letter-spacing:-.02em}
 .chip:hover{border-color:var(--accent); color:var(--accent)}
 .chip.on{background:var(--ink); color:var(--bg); border-color:var(--ink)}
 .chip.on2{background:var(--accent); color:#fff; border-color:var(--accent)}
 .chip.sm{font-size:12.5px; padding:6px 12px}
 .chiprow{display:flex; gap:7px; flex-wrap:wrap}
+.gufilt{margin:0 0 12px}
+.gufilt .chip{font-size:13px; padding:7px 14px}
 
 .cemo{display:inline-block; width:1.35em; margin-right:5px; text-align:center; font-size:1.02em; line-height:1}
 /* ---------- table ---------- */
@@ -507,8 +509,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=76',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=76',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=77',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=77',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -565,7 +567,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=76';
+      var s=document.createElement('script'); s.src='app.js?v=77';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);

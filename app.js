@@ -578,13 +578,24 @@ function sidoBody(sk, subTitle){
       var sp=(a[1]-a[0])||1, t=(v-a[0])/sp;
       return Math.round((inv?1-t:t)*100);
     }
-    h += '<section><h2><span class="emo">🏘️</span>'+esc(sk)+'의 시·군·구 <small>가나다순 · '+kids.length+'곳 · 막대는 '+esc(sk)+' 안에서 견준 값</small></h2>';
+    var tc = {};
+    kids.forEach(function(cd){ var t=guType(D.basic[cd].name); tc[t]=(tc[t]||0)+1; });
+    h += '<section><h2><span class="emo">🏘️</span>'+esc(sk)+'의 시·군·구 <small>가나다순 · <span class="gucount">'+kids.length+'곳</span> · 막대는 '+esc(sk)+' 안에서 견준 값</small></h2>';
+    if (Object.keys(tc).length > 1){
+      h += '<div class="chiprow gufilt">';
+      h += '<button class="chip on" onclick="filterGu(this,\'all\')">전체 '+kids.length+'</button>';
+      ['시','군','구'].forEach(function(t){
+        if (!tc[t]) return;
+        h += '<button class="chip" onclick="filterGu(this,\''+t+'\')">'+t+' '+tc[t]+'</button>';
+      });
+      h += '</div>';
+    }
     h += '<div class="gulist">';
     kids.forEach(function(cd){
       var bb = D.basic[cd], rp = bb.report || {};
       var g = rp.grade, col = g ? GRADE_FILL[g] : 'var(--ink3)';
       var sc = rp.score!=null ? rp.score : null;
-      h += '<a class="gurow" href="#/gu/'+cd+'">';
+      h += '<a class="gurow" data-t="'+guType(bb.name)+'" href="#/gu/'+cd+'">';
       h += '<div class="gutop">';
       h += '<span class="gugrade" style="background:'+col+'">'+(g||'-')+'</span>';
       h += '<span class="gunm">'+esc(bb.name)+'</span>';
@@ -1299,6 +1310,20 @@ function adminOff(){ try{ localStorage.removeItem('uv_admin'); }catch(e){} rende
     else if (/[?&]admin=off\b/.test(q)) localStorage.removeItem('uv_admin');
   } catch(e){}
 })();
+function guType(n){ return /구$/.test(n) ? '구' : (/군$/.test(n) ? '군' : '시'); }
+function filterGu(btn, t){
+  var sec = btn.parentNode.parentNode;
+  var btns = sec.querySelectorAll('.gufilt .chip');
+  for (var i=0;i<btns.length;i++) btns[i].className = 'chip' + (btns[i]===btn ? ' on' : '');
+  var rows = sec.querySelectorAll('.gurow'), shown = 0;
+  for (var j=0;j<rows.length;j++){
+    var ok = (t==='all') || (rows[j].getAttribute('data-t')===t);
+    rows[j].style.display = ok ? '' : 'none';
+    if (ok) shown++;
+  }
+  var cnt = sec.querySelector('.gucount');
+  if (cnt) cnt.textContent = shown + '곳';
+}
 function catAggScope(N, pick){
   var agg={};
   Object.keys(N.units).forEach(function(k){
