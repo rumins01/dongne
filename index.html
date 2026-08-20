@@ -5,6 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2456E8">
 <title>우리동네 이야기 — 세금·예산·상권·안전 공공데이터 리포트</title>
 <meta name="description" content="민선 9기 광역단체장의 공약과 2026년 예산, 시군구 226곳 세금 성적표, 전국 67개 업종의 개폐업까지. 공공데이터 원본으로 읽는 우리동네 이야기.">
 <meta property="og:title" content="우리동네 이야기 - 단체장의 약속과 예산, 세금 성적표, 가게 흥망사">
@@ -12,7 +13,6 @@
 <link rel="icon" href="favicon.svg?v=1" type="image/svg+xml">
 <link rel="icon" href="favicon.png?v=1" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
-<meta name="theme-color" content="#2456E8">
 <link rel="canonical" href="https://rumins01.github.io/dongne/">
 <meta property="og:url" content="https://rumins01.github.io/dongne/">
 <meta property="og:image" content="https://rumins01.github.io/dongne/og.png?v=3">
@@ -36,7 +36,7 @@
   --mw:1140px;
 }
 @media (prefers-color-scheme: dark){
-  :root{ --ink:#F3F4F6; --ink2:#B7BCC6; --ink3:#7E838D;
+  :root:not([data-theme="light"]){ --ink:#F3F4F6; --ink2:#B7BCC6; --ink3:#7E838D;
     --bg:#0E0F12; --bg2:#15171B; --panel:#15171B;
     --rule:#282B31; --rule2:#1E2126;
     --accent:#7CA0FF; --accent-soft:#1B2440;
@@ -45,6 +45,14 @@
     --sh:0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
     --sh-h:0 2px 6px rgba(0,0,0,.5), 0 12px 32px rgba(0,0,0,.45); }
 }
+  :root[data-theme="dark"]{ --ink:#F3F4F6; --ink2:#B7BCC6; --ink3:#7E838D;
+    --bg:#0E0F12; --bg2:#15171B; --panel:#15171B;
+    --rule:#282B31; --rule2:#1E2126;
+    --accent:#7CA0FF; --accent-soft:#1B2440;
+    --pos:#3FCB96; --pos-soft:#13291F; --neg:#FF7B74; --neg-soft:#2B1614;
+    --warn:#F0B54A; --warn-soft:#2A2113;
+    --sh:0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+    --sh-h:0 2px 6px rgba(0,0,0,.5), 0 12px 32px rgba(0,0,0,.45); }
 *{box-sizing:border-box; margin:0; padding:0}
 html{scroll-behavior:smooth; touch-action:pan-x pan-y; -webkit-text-size-adjust:100%; text-size-adjust:100%}
 body{touch-action:pan-x pan-y; overflow-x:clip}
@@ -59,12 +67,18 @@ b,strong{font-weight:700}
 /* ---------- header ---------- */
 header.top{position:sticky; top:0; z-index:40; background:rgba(255,255,255,.82); backdrop-filter:saturate(180%) blur(14px);
   border-bottom:1px solid var(--rule2)}
-@media (prefers-color-scheme: dark){ header.top{background:rgba(14,15,18,.82)} }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) header.top{background:rgba(14,15,18,.82)} }
+:root[data-theme="dark"] header.top{background:rgba(14,15,18,.82)}
 .top .wrap{display:flex; align-items:center; gap:14px; padding:13px 20px}
 .brand{font-weight:800; font-size:19px; letter-spacing:-.045em; cursor:pointer; display:flex; align-items:center; gap:7px}
 .brand em{font-style:normal; color:var(--accent)}
 .brand .dot{width:22px; height:22px; border-radius:7px; background:var(--accent); display:inline-flex; align-items:center; justify-content:center; font-size:12px}
 .top .sub{font-size:12.5px; color:var(--ink3); letter-spacing:-.01em}
+.themebtn{margin-left:auto; width:34px; height:34px; border-radius:10px; border:1px solid var(--rule);
+  background:var(--panel); color:var(--ink2); cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+  font-family:inherit; padding:0; flex-shrink:0; transition:border-color .15s, color .15s}
+.themebtn:hover{border-color:var(--accent); color:var(--accent)}
+.themebtn svg{width:17px; height:17px; display:block}
 .top .right{margin-left:auto; font-size:12px; color:var(--ink3); background:var(--bg2); padding:5px 11px; border-radius:999px}
 nav.tabs{background:var(--bg); border-bottom:1px solid var(--rule2); position:sticky; top:52px; z-index:39}
 nav.tabs .wrap{display:flex; gap:4px; padding:0 20px; overflow-x:auto; scrollbar-width:none}
@@ -393,7 +407,12 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
   .brand{font-size:17px; white-space:nowrap; flex-shrink:0}
   .brand .dot{width:20px; height:20px; border-radius:6px; font-size:11px}
   .top .sub{display:none}
-  .top .right{font-size:11px; padding:4px 9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46vw}
+  .themebtn{margin-left:auto; width:34px; height:34px; border-radius:10px; border:1px solid var(--rule);
+  background:var(--panel); color:var(--ink2); cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+  font-family:inherit; padding:0; flex-shrink:0; transition:border-color .15s, color .15s}
+.themebtn:hover{border-color:var(--accent); color:var(--accent)}
+.themebtn svg{width:17px; height:17px; display:block}
+.top .right{font-size:11px; padding:4px 9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:46vw}
   nav.tabs{top:46px}
   nav.tabs .wrap{padding:0 8px; gap:0}
   nav.tabs a{padding:11px 9px; font-size:13.5px; flex:1; text-align:center}
@@ -436,7 +455,12 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
   footer{padding:22px 0 36px}
 }
 @media(max-width:400px){
-  .top .right{display:none}
+  .themebtn{margin-left:auto; width:34px; height:34px; border-radius:10px; border:1px solid var(--rule);
+  background:var(--panel); color:var(--ink2); cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+  font-family:inherit; padding:0; flex-shrink:0; transition:border-color .15s, color .15s}
+.themebtn:hover{border-color:var(--accent); color:var(--accent)}
+.themebtn svg{width:17px; height:17px; display:block}
+.top .right{display:none}
   .brand{font-size:16px}
 }
 
@@ -464,11 +488,47 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
   .fine a{padding:4px 2px}
 }
 </style>
+<script>
+(function(){
+  var KEY='uv_theme';
+  function saved(){ try { return localStorage.getItem(KEY); } catch(e){ return null; } }
+  function apply(v){
+    var r=document.documentElement;
+    if (v==='dark'||v==='light') r.setAttribute('data-theme', v); else r.removeAttribute('data-theme');
+    var dark = v==='dark' || (v!=='light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    var m=document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', dark ? '#0E0F12' : '#2456E8');
+    paint(v);
+  }
+  var ICON={
+    auto:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" stroke="none"/></svg>',
+    light:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 12H2M22 12h-2.2M5.6 5.6 7.2 7.2M16.8 16.8l1.6 1.6M18.4 5.6 16.8 7.2M7.2 16.8l-1.6 1.6"/></svg>',
+    dark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2z"/></svg>'
+  };
+  var LABEL={auto:'화면 밝기: 기기 설정 따름', light:'화면 밝기: 밝게', dark:'화면 밝기: 어둡게'};
+  function paint(v){
+    var b=document.getElementById('themeBtn'); if(!b) return;
+    var k = (v==='dark'||v==='light') ? v : 'auto';
+    b.innerHTML = ICON[k];
+    b.setAttribute('title', LABEL[k]+' (눌러서 바꾸기)');
+    b.setAttribute('aria-label', LABEL[k]);
+  }
+  window.cycleTheme=function(){
+    var cur=saved(), next = cur==='dark' ? 'light' : (cur==='light' ? null : 'dark');
+    try { if(next) localStorage.setItem(KEY,next); else localStorage.removeItem(KEY); } catch(e){}
+    apply(next);
+  };
+  apply(saved());
+  if (window.matchMedia) try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if(!saved()) apply(null); }); }catch(e){}
+  document.addEventListener('DOMContentLoaded', function(){ paint(saved()); });
+})();
+</script>
 </head>
 <body>
 <header class="top"><div class="wrap">
   <div class="brand" onclick="location.hash=''"><span class="dot">🏘️</span><em>우리동네</em> 이야기</div>
   <div class="sub">숫자로 보는 내 동네</div>
+  <button class="themebtn" id="themeBtn" onclick="cycleTheme()" aria-label="화면 밝기 바꾸기"></button>
 </div></header>
 <nav class="tabs"><div class="wrap">
   <a href="#" data-tab="home"><span class="emo">🏘️</span>홈</a>
@@ -509,8 +569,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=77',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=77',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=78',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=78',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -567,7 +627,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=77';
+      var s=document.createElement('script'); s.src='app.js?v=78';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);
