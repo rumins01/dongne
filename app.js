@@ -567,24 +567,38 @@ function sidoBody(sk, subTitle){
   var kids = Object.keys(D.basic).filter(function(cd){ return D.basic[cd].sido===sk; });
   if (kids.length){
     kids.sort(function(a,b2){ return D.basic[a].name.localeCompare(D.basic[b2].name, 'ko'); });
-    var jmax = 0;
-    kids.forEach(function(cd){ var j=D.basic[cd].jarip25; if(j!=null&&j>jmax) jmax=j; });
-    if (!jmax) jmax = 1;
-    h += '<section><h2><span class="emo">🏘️</span>'+esc(sk)+'의 시·군·구 <small>가나다순 · '+kids.length+'곳 · 막대는 '+esc(sk)+' 안에서 견준 재정자립도</small></h2>';
+    var mm = {jar:[null,null], ch:[null,null], gr:[null,null], pc:[null,null]};
+    function upd(k,v){ if(v==null) return; var a=mm[k]; if(a[0]==null||v<a[0])a[0]=v; if(a[1]==null||v>a[1])a[1]=v; }
+    kids.forEach(function(cd){ var b=D.basic[cd], r=b.report||{};
+      upd('jar', b.jarip25); upd('ch', r.chRatio); upd('gr', r.growth); upd('pc', b.pc26?b.pc26.pc:null); });
+    function norm(k,v,inv){
+      var a=mm[k]; if(v==null||a[0]==null) return 0;
+      var sp=(a[1]-a[0])||1, t=(v-a[0])/sp;
+      return Math.round((inv?1-t:t)*100);
+    }
+    h += '<section><h2><span class="emo">🏘️</span>'+esc(sk)+'의 시·군·구 <small>가나다순 · '+kids.length+'곳 · 막대는 '+esc(sk)+' 안에서 견준 값</small></h2>';
     h += '<div class="gulist">';
     kids.forEach(function(cd){
-      var bb = D.basic[cd];
-      var g = bb.report && bb.report.grade;
-      var col = g ? GRADE_FILL[g] : 'var(--ink3)';
+      var bb = D.basic[cd], rp = bb.report || {};
+      var g = rp.grade, col = g ? GRADE_FILL[g] : 'var(--ink3)';
+      var sc = rp.score!=null ? rp.score : null;
       h += '<a class="gurow" href="#/gu/'+cd+'">';
-      h += '<span class="gudot" style="background:'+col+'"'+(g?' title="'+g+'등급"':'')+'></span>';
+      h += '<div class="gutop">';
+      h += '<span class="gugrade" style="background:'+col+'">'+(g||'-')+'</span>';
       h += '<span class="gunm">'+esc(bb.name)+'</span>';
-      h += '<span class="gubar"><i style="width:'+(bb.jarip25!=null?(bb.jarip25/jmax*100).toFixed(0):0)+'%; background:'+col+'"></i></span>';
-      h += '<b class="guv tn">'+pct(bb.jarip25)+'</b>';
-      h += '<span class="gupc tn">'+(bb.pc26?fmtManFromChun(bb.pc26.pc):'—')+'</span>';
-      h += '</a>';
+      h += '<span class="guscore"><i style="width:'+(sc!=null?sc.toFixed(0):0)+'%; background:'+col+'"></i></span>';
+      h += '<b class="guv tn">'+(sc!=null?sc.toFixed(0):'—')+'</b>';
+      h += '</div><div class="gumini">';
+      [['자립도', pct(bb.jarip25), norm('jar', bb.jarip25, false), 'var(--accent)'],
+       ['체납', rp.chRatio!=null?rp.chRatio.toFixed(1)+'%':'—', norm('ch', rp.chRatio, true), 'var(--neg)'],
+       ['세수성장', rp.growth!=null?(rp.growth>0?'+':'')+rp.growth.toFixed(1)+'%':'—', norm('gr', rp.growth, false), 'var(--pos)'],
+       ['1인당', bb.pc26?fmtManFromChun(bb.pc26.pc):'—', norm('pc', bb.pc26?bb.pc26.pc:null, false), 'var(--ink3)']
+      ].forEach(function(m){
+        h += '<span class="gum"><em>'+m[0]+'</em><b class="tn">'+m[1]+'</b><span class="gumb"><i style="width:'+m[2]+'%; background:'+m[3]+'"></i></span></span>';
+      });
+      h += '</div></a>';
     });
-    h += '</div><p class="fine">왼쪽 점은 세금 성적표 등급, 막대와 %는 재정자립도(2025), 오른쪽은 1인당 지방세(2026 예산)예요.</p>'+(sk==='서울'?'<p class="muted" style="margin-top:10px">서울 자치구는 <b>상권 이야기</b>도 있어요 — 구 페이지에서 이어져요.</p>':'')+'</section>';
+    h += '</div><p class="fine">등급과 점수는 세금 성적표 기준이에요(같은 유형끼리 3지표 백분위 평균). 막대는 '+esc(sk)+' 안에서만 견준 상대값이라 다른 시·도와는 비교하지 마세요. 체납은 낮을수록 막대가 길어요.</p>'+(sk==='서울'?'<p class="muted" style="margin-top:10px">서울 자치구는 <b>상권 이야기</b>도 있어요 — 구 페이지에서 이어져요.</p>':'')+'</section>';
   }
   return h;
 }
