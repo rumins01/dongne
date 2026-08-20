@@ -565,45 +565,153 @@ function sidoBody(sk, subTitle){
   return h;
 }
 
+/* ---------- 단체장의 지갑: 차트 헬퍼 ---------- */
+var WCOL = {giwan:'#2456E8', sichaek:'#EC4899', festa:'#F0A828', trip:'#8B5CF6', cash:'#14B8A6'};
+
+/* 스택 막대 + 한도 대비 */
+function wStack(segs, cap){
+  var tot = 0; segs.forEach(function(s){ tot += (s.v||0); });
+  var base = (cap && cap > tot) ? cap : tot;
+  if (!base) return '';
+  var h = '<div class="wstack">';
+  segs.forEach(function(s){ if(!s.v) return;
+    h += '<i style="width:'+(s.v/base*100).toFixed(2)+'%; background:'+s.c+'" title="'+esc(s.lab)+' '+fmtWon(s.v)+'"></i>'; });
+  if (cap && cap > tot) h += '<i class="rest" style="width:'+((cap-tot)/base*100).toFixed(2)+'%" title="미편성 여유"></i>';
+  h += '</div><div class="wlegend">';
+  segs.forEach(function(s){ if(!s.v) return;
+    h += '<span><i style="background:'+s.c+'"></i>'+esc(s.lab)+' <b class="tn">'+fmtWon(s.v)+'</b></span>'; });
+  if (cap) h += '<span class="wcap">한도 '+fmtWon(cap)+'의 <b class="tn">'+pct(tot/cap*100,1)+'</b> 편성</span>';
+  return h + '</div>';
+}
+
+/* 연도별 기둥 */
+function wCols(items, color){
+  var max = 0; items.forEach(function(x){ if(x.v>max) max = x.v; });
+  var h = '<div class="wcols" style="--wc:'+color+'">';
+  items.forEach(function(x,i){
+    var hh = max ? Math.max(x.v/max*100, 3) : 3;
+    h += '<div class="wcol"><b class="tn">'+fmtWon(x.v)+'</b>'
+       + '<i style="height:'+hh.toFixed(1)+'%; opacity:'+(0.4+0.6*(i+1)/items.length).toFixed(2)+'"></i>'
+       + '<span>'+esc(x.lab)+(x.sub?'<em>'+esc(x.sub)+'</em>':'')+'</span></div>';
+  });
+  return h + '</div>';
+}
+
+/* 또래 분포 스트립 — 순위 위치에 점, 우리 위치 강조 */
+function wStrip(pairs, meKey, color, fmtV, unitLab){
+  var arr = pairs.filter(function(p){ return p[1]!=null && !isNaN(p[1]); })
+                 .sort(function(a,b){ return a[1]-b[1]; });
+  var n = arr.length; if (n < 3) return '';
+  var idx = -1; arr.forEach(function(p,i){ if (p[0]===meKey) idx = i; });
+  var pos = function(i){ return (4 + 92*(n===1?0.5:i/(n-1))).toFixed(2); };
+  var h = '<div class="wstrip'+(n>28?' dense':'')+'" style="--wc:'+color+'"><div class="wline"></div>';
+  arr.forEach(function(p,i){
+    h += '<span class="wdot'+(i===idx?' me':'')+'" style="left:'+pos(i)+'%" title="'+esc(p[0])+' '+fmtV(p[1])+'"></span>';
+  });
+  /* 우리가 양끝이면 끝 라벨과 겹치니 그쪽은 생략 */
+  if (idx !== 0)   h += '<span class="wend l">'+esc(arr[0][0])+' '+fmtV(arr[0][1])+'</span>';
+  if (idx !== n-1) h += '<span class="wend r">'+esc(arr[n-1][0])+' '+fmtV(arr[n-1][1])+'</span>';
+  if (idx >= 0) h += '<span class="wme'+(idx===0?' e-l':(idx===n-1?' e-r':''))+'" style="left:'+pos(idx)+'%">'
+    + (n-idx)+'위 / '+n+'곳 · '+fmtV(arr[idx][1])+'</span>';
+  return h + '</div>';
+}
+
+/* 지표 한 줄 */
+function wTone(v){ return (v==null||Math.abs(v)<0.05)?'':(v>0?'neg':'pos'); }
+function wMetric(o){
+  var h = '<div class="wmet" style="--wc:'+o.color+'">';
+  h += '<div class="wtop"><div class="wname"><i></i>'+esc(o.name)+'</div>';
+  h += '<div class="wnum"><b class="tn">'+o.value+'</b>'+(o.note?'<span>'+o.note+'</span>':'')+'</div></div>';
+  if (o.delta) h += '<div class="wdelta '+(o.deltaTone||'')+'">'+o.delta+'</div>';
+  h += (o.chart||'') + (o.strip||'');
+  return h + '</div>';
+}
+
 function walletSection(s, sk){
   var w = s.wallet || {};
-  var rkGiwan = sidoRank(function(x){ return x.wallet&&x.wallet.giwan ? x.wallet.giwan.chief : null; });
-  var rkFesta = sidoRank(function(x){ return x.wallet&&x.wallet.festa ? x.wallet.festa.rt : null; });
-  var rkTrip  = sidoRank(function(x){ return x.wallet&&x.wallet.trip ? x.wallet.trip.amt : null; });
-  var h = '<section><h2><span class="emo">👛</span>단체장의 지갑 <small>2026년 예산 편성 기준 · 동급(광역 17곳) 비교</small></h2><div class="grid g3">';
+  var SD = D.sido;
+  var pairs = function(getter){
+    return Object.keys(SD).map(function(k){ return [k, getter(SD[k])]; });
+  };
+  var wonS = function(v){ return fmtWon(v); };
+  var pctS = function(v){ return pct(v,2); };
+
+  var h = '<section><h2><span class="emo">👛</span>단체장의 지갑 <small>2026년 본예산 편성 · 광역 17곳 분포에서 우리 위치</small></h2>';
+  h += '<p class="lead" style="font-size:14px; margin:-4px 0 12px">점 하나가 시·도 하나예요. 굵은 점이 '+esc(SIDO_FULL[sk]||sk)+'고, 오른쪽으로 갈수록 많이 씁니다.</p>';
+  h += '<div class="wallet">';
+
   if (w.giwan){
+    var etc = Math.max((w.giwan.total||0) - (w.giwan.chief||0) - (w.giwan.vice||0), 0);
     var gPrev = w.giwan.prev ? ((w.giwan.chief/w.giwan.prev.chief-1)*100) : null;
-    h += '<div class="rule-card tn"><h3>기관운영 업무추진비</h3>';
-    h += '<div class="stat" style="margin-top:8px"><b>'+fmtWon(w.giwan.chief)+'</b><span>단체장 몫 편성액 · 광역 '+rkGiwan.n+'곳 중 '+(rkGiwan.m[sk]||'—')+'위</span></div>';
-    h += '<div class="row" style="display:flex;justify-content:space-between;border-top:1px dashed var(--rule2);margin-top:10px;padding-top:6px;font-size:12.5px"><span>부단체장 몫</span><b>'+fmtWon(w.giwan.vice)+'</b></div>';
-    h += '<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>편성 총액 / 한도</span><b>'+fmtWon(w.giwan.total)+' / '+fmtWon(w.giwan.limit)+'</b></div>';
-    h += '<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>2023 대비 단체장 몫</span><b class="'+(gPrev>0?'neg':'pos')+'">'+(gPrev==null?'—':(gPrev>0?'+':'')+gPrev.toFixed(1)+'%')+'</b></div></div>';
+    h += wMetric({
+      name:'기관운영 업무추진비', color:WCOL.giwan,
+      value:fmtWon(w.giwan.chief), note:'단체장 몫',
+      delta: gPrev==null ? null : '2023 대비 단체장 몫 <b class="tn">'+(gPrev>0?'+':'')+gPrev.toFixed(1)+'%</b>',
+      deltaTone: wTone(gPrev),
+      chart: wStack([
+        {lab:'단체장', v:w.giwan.chief, c:WCOL.giwan},
+        {lab:'부단체장', v:w.giwan.vice, c:'#7CA0FF'},
+        {lab:'그 외 기관운영', v:etc, c:'#C7D6FF'}
+      ], w.giwan.limit),
+      strip: wStrip(pairs(function(x){ return x.wallet&&x.wallet.giwan?x.wallet.giwan.chief:null; }), sk, WCOL.giwan, wonS)
+    });
   }
+
+  if (w.sichaek){
+    h += wMetric({
+      name:'시책추진 업무추진비', color:WCOL.sichaek,
+      value:fmtWon(w.sichaek.total), note:'기준액 대비 '+pct(w.sichaek.rt,1),
+      chart: wStack([{lab:'편성액', v:w.sichaek.total, c:WCOL.sichaek}], w.sichaek.base),
+      strip: wStrip(pairs(function(x){ return x.wallet&&x.wallet.sichaek?x.wallet.sichaek.total:null; }), sk, WCOL.sichaek, wonS)
+    });
+  }
+
   if (w.festa){
-    h += '<div class="rule-card tn"><h3>행사·축제 경비</h3>';
-    h += '<div class="stat" style="margin-top:8px"><b>'+fmtWon(w.festa.amt)+'</b><span>세출 대비 '+pct(w.festa.rt,2)+' · 비율 '+rkFesta.n+'곳 중 '+(rkFesta.m[sk]||'—')+'위</span></div>';
-    h += '<table style="margin-top:10px"><tr><th>연도</th><th class="right">편성액</th><th class="right">비율</th></tr>';
-    if (w.festa.prev18) h += '<tr><td>2018</td><td class="right">'+fmtWon(w.festa.prev18.amt)+'</td><td class="right">'+pct(w.festa.prev18.rt,2)+'</td></tr>';
-    if (w.festa.prev22) h += '<tr><td>2022</td><td class="right">'+fmtWon(w.festa.prev22.amt)+'</td><td class="right">'+pct(w.festa.prev22.rt,2)+'</td></tr>';
-    h += '<tr class="hl"><td>2026</td><td class="right">'+fmtWon(w.festa.amt)+'</td><td class="right">'+pct(w.festa.rt,2)+'</td></tr></table></div>';
+    var fc = [];
+    if (w.festa.prev18) fc.push({lab:'2018', v:w.festa.prev18.amt, sub:pct(w.festa.prev18.rt,2)});
+    if (w.festa.prev22) fc.push({lab:'2022', v:w.festa.prev22.amt, sub:pct(w.festa.prev22.rt,2)});
+    fc.push({lab:'2026', v:w.festa.amt, sub:pct(w.festa.rt,2)});
+    var fPrev = w.festa.prev22 ? ((w.festa.amt/w.festa.prev22.amt-1)*100) : null;
+    h += wMetric({
+      name:'행사·축제 경비', color:WCOL.festa,
+      value:fmtWon(w.festa.amt), note:'세출예산의 '+pct(w.festa.rt,2),
+      delta: fPrev==null ? null : '2022 대비 <b class="tn">'+(fPrev>0?'+':'')+fPrev.toFixed(0)+'%</b> · 아래 숫자는 세출 대비 비율',
+      deltaTone: wTone(fPrev),
+      chart: wCols(fc, WCOL.festa),
+      strip: wStrip(pairs(function(x){ return x.wallet&&x.wallet.festa?x.wallet.festa.rt:null; }), sk, WCOL.festa, pctS)
+    });
   }
-  if (w.trip || w.cash){
-    h += '<div class="rule-card tn">';
-    if (w.trip){
-      var tPrev = w.trip.prev22 ? ((w.trip.amt/w.trip.prev22.amt-1)*100) : null;
-      h += '<h3>국외여비</h3><div class="stat" style="margin-top:8px"><b>'+fmtWon(w.trip.amt)+'</b><span>총액 '+rkTrip.n+'곳 중 '+(rkTrip.m[sk]||'—')+'위 · 2022 대비 '+(tPrev==null?'—':(tPrev>0?'+':'')+tPrev.toFixed(0)+'%')+'</span></div>';
-    }
-    if (w.cash){
-      h += '<h3 style="margin-top:14px">현금성 복지 (자체)</h3><div class="stat" style="margin-top:6px"><b>'+fmtWon(w.cash.amt)+'</b><span>세출 대비 '+pct(w.cash.rt,2)+'</span></div>';
-    }
-    h += '</div>';
+
+  if (w.trip){
+    var tc = [];
+    if (w.trip.prev22) tc.push({lab:'2022', v:w.trip.prev22.amt});
+    tc.push({lab:'2026', v:w.trip.amt});
+    var tPrev = w.trip.prev22 ? ((w.trip.amt/w.trip.prev22.amt-1)*100) : null;
+    h += wMetric({
+      name:'국외여비', color:WCOL.trip,
+      value:fmtWon(w.trip.amt), note:'국외업무여비 + 국제화여비',
+      delta: tPrev==null ? null : '2022 대비 <b class="tn">'+(tPrev>0?'+':'')+tPrev.toFixed(0)+'%</b>',
+      deltaTone: wTone(tPrev),
+      chart: wCols(tc, WCOL.trip),
+      strip: wStrip(pairs(function(x){ return x.wallet&&x.wallet.trip?x.wallet.trip.amt:null; }), sk, WCOL.trip, wonS)
+    });
   }
+
+  if (w.cash){
+    h += wMetric({
+      name:'현금성 복지 (자체재원)', color:WCOL.cash,
+      value:fmtWon(w.cash.amt), note:'세출예산의 '+pct(w.cash.rt,2),
+      strip: wStrip(pairs(function(x){ return x.wallet&&x.wallet.cash?x.wallet.cash.rt:null; }), sk, WCOL.cash, pctS)
+    });
+  }
+
   h += '</div>';
   h += '<details class="metric"><summary>이 숫자들의 정의를 알려드려요</summary><div class="body">'
     + '· 전부 <b>2026년 본예산 편성액</b>이에요. 실제 집행액(결산)은 2027년에 확정돼요.<br>'
-    + '· 기관운영 업무추진비의 "단체장 몫"은 단체장/부단체장/실국장 몫이 따로 공시된 값이에요.<br>'
+    + '· 기관운영 업무추진비의 "단체장 몫"은 단체장/부단체장/실국장 몫이 따로 공시된 값이에요. 막대의 옅은 칸은 한도 중 아직 안 쓴 몫이에요.<br>'
     + '· 행사·축제 경비 비율의 분모는 세출예산액이에요. 국외여비 = 국외업무여비 + 국제화여비.<br>'
     + '· 현금성 복지는 301-03 사회보장적수혜금(지방재원) 통계목 기준 — 지자체가 조례 등으로 자체 지급하는 현금성 지원이에요.<br>'
+    + '· 분포 점은 광역 17곳 전부예요. 금액이 큰 시·도가 인구도 많다는 점은 감안해서 보세요.<br>'
     + '· 편성은 2025년 말 전임 집행부(민선 8기)가 했고, 현 단체장은 집행을 맡아요.</div></details>';
   h += '</section>';
   return h;
@@ -661,23 +769,81 @@ function renderGu(cd){
 
   var w = b.wallet||{};
   if (w.giwan || w.festa){
-    h += '<section><h2><span class="emo">👛</span>단체장의 지갑 <small>2026 예산 편성 · 같은 '+type+' 유형끼리 비교</small></h2><div class="grid g3">';
+    var meNm = b.sido+' '+b.name;
+    var gpair = function(getter){
+      return peers.map(function(k){ var x=D.basic[k]; return [x.sido+' '+x.name, getter(x)]; });
+    };
+    var wonS = function(v){ return fmtWon(v); };
+    var pctS = function(v){ return pct(v,2); };
+    h += '<section><h2><span class="emo">👛</span>단체장의 지갑 <small>2026 본예산 편성 · 같은 '+type+' '+peers.length+'곳 분포에서 우리 위치</small></h2>';
+    h += '<p class="lead" style="font-size:14px; margin:-4px 0 12px">점 하나가 '+type+' 하나예요. 굵은 점이 '+esc(b.name)+'이고, 오른쪽으로 갈수록 많이 씁니다.</p>';
+    h += '<div class="wallet">';
     if (w.giwan){
-      var gp = pctileOf(function(x){ return x.wallet&&x.wallet.giwan?x.wallet.giwan.chief:null; });
-      h += '<div class="rule-card tn"><h3>기관운영 업무추진비</h3><div class="stat" style="margin-top:8px"><b>'+fmtWon(w.giwan.chief)+'</b><span>단체장 몫 · '+(gp?type+' '+gp.n+'곳 중 '+gp.rank+'위':'')+'</span></div>';
-      h += '<div style="display:flex;justify-content:space-between;font-size:12.5px;border-top:1px dashed var(--rule2);margin-top:10px;padding-top:6px"><span>편성 총액/한도</span><b>'+fmtWon(w.giwan.total)+' / '+fmtWon(w.giwan.limit)+'</b></div></div>';
-    }
-    if (w.festa){
-      var fp = pctileOf(function(x){ return x.wallet&&x.wallet.festa?x.wallet.festa.rt:null; });
-      h += '<div class="rule-card tn"><h3>행사·축제 경비</h3><div class="stat" style="margin-top:8px"><b>'+fmtWon(w.festa.amt)+'</b><span>세출 대비 '+pct(w.festa.rt,2)+' · '+(fp?'비율 '+type+' '+fp.n+'곳 중 '+fp.rank+'위':'')+'</span></div>';
-      if (w.festa.prev22) h += '<div style="display:flex;justify-content:space-between;font-size:12.5px;border-top:1px dashed var(--rule2);margin-top:10px;padding-top:6px"><span>2022 편성액</span><b>'+fmtWon(w.festa.prev22.amt)+'</b></div>';
-      h += '</div>';
+      var etcG = Math.max((w.giwan.total||0)-(w.giwan.chief||0)-(w.giwan.vice||0), 0);
+      var gPrevB = w.giwan.prev ? ((w.giwan.chief/w.giwan.prev.chief-1)*100) : null;
+      h += wMetric({
+        name:'기관운영 업무추진비', color:WCOL.giwan,
+        value:fmtWon(w.giwan.chief), note:'단체장 몫',
+        delta: gPrevB==null?null:'2023 대비 단체장 몫 <b class="tn">'+(gPrevB>0?'+':'')+gPrevB.toFixed(1)+'%</b>',
+        deltaTone: wTone(gPrevB),
+        chart: wStack([
+          {lab:'단체장', v:w.giwan.chief, c:WCOL.giwan},
+          {lab:'부단체장', v:w.giwan.vice, c:'#7CA0FF'},
+          {lab:'그 외 기관운영', v:etcG, c:'#C7D6FF'}
+        ], w.giwan.limit),
+        strip: wStrip(gpair(function(x){ return x.wallet&&x.wallet.giwan?x.wallet.giwan.chief:null; }), meNm, WCOL.giwan, wonS)
+      });
     }
     if (w.sichaek){
-      h += '<div class="rule-card tn"><h3>시책추진 업무추진비</h3><div class="stat" style="margin-top:8px"><b>'+fmtWon(w.sichaek.total)+'</b><span>기준액 대비 '+pct(w.sichaek.rt,1)+'</span></div>'
-        + (w.sichaek.prev?'<div style="display:flex;justify-content:space-between;font-size:12.5px;border-top:1px dashed var(--rule2);margin-top:10px;padding-top:6px"><span>2023 편성액</span><b>'+fmtWon(w.sichaek.prev.total)+'</b></div>':'')+'</div>';
+      h += wMetric({
+        name:'시책추진 업무추진비', color:WCOL.sichaek,
+        value:fmtWon(w.sichaek.total), note:'기준액 대비 '+pct(w.sichaek.rt,1),
+        delta: w.sichaek.prev?'2023 편성액 <b class="tn">'+fmtWon(w.sichaek.prev.total)+'</b>':null,
+        chart: wStack([{lab:'편성액', v:w.sichaek.total, c:WCOL.sichaek}], w.sichaek.base),
+        strip: wStrip(gpair(function(x){ return x.wallet&&x.wallet.sichaek?x.wallet.sichaek.total:null; }), meNm, WCOL.sichaek, wonS)
+      });
     }
-    h += '</div><details class="metric"><summary>이 숫자들의 정의를 알려드려요</summary><div class="body">전부 2026년 본예산 편성액이에요. 단체장 몫은 따로 공시된 값이고, 행사·축제 비율의 분모는 세출예산액이에요. 편성 주체는 2025년 말의 전임 집행부예요.</div></details></section>';
+    if (w.festa){
+      var fcB = [];
+      if (w.festa.prev18) fcB.push({lab:'2018', v:w.festa.prev18.amt, sub:pct(w.festa.prev18.rt,2)});
+      if (w.festa.prev22) fcB.push({lab:'2022', v:w.festa.prev22.amt, sub:pct(w.festa.prev22.rt,2)});
+      fcB.push({lab:'2026', v:w.festa.amt, sub:pct(w.festa.rt,2)});
+      var fPrevB = w.festa.prev22 ? ((w.festa.amt/w.festa.prev22.amt-1)*100) : null;
+      h += wMetric({
+        name:'행사·축제 경비', color:WCOL.festa,
+        value:fmtWon(w.festa.amt), note:'세출예산의 '+pct(w.festa.rt,2),
+        delta: fPrevB==null?null:'2022 대비 <b class="tn">'+(fPrevB>0?'+':'')+fPrevB.toFixed(0)+'%</b> · 아래 숫자는 세출 대비 비율',
+        deltaTone: wTone(fPrevB),
+        chart: wCols(fcB, WCOL.festa),
+        strip: wStrip(gpair(function(x){ return x.wallet&&x.wallet.festa?x.wallet.festa.rt:null; }), meNm, WCOL.festa, pctS)
+      });
+    }
+    if (w.trip){
+      var tcB = [];
+      if (w.trip.prev22) tcB.push({lab:'2022', v:w.trip.prev22.amt});
+      tcB.push({lab:'2026', v:w.trip.amt});
+      var tPrevB = w.trip.prev22 ? ((w.trip.amt/w.trip.prev22.amt-1)*100) : null;
+      h += wMetric({
+        name:'국외여비', color:WCOL.trip,
+        value:fmtWon(w.trip.amt), note:'국외업무여비 + 국제화여비',
+        delta: tPrevB==null?null:'2022 대비 <b class="tn">'+(tPrevB>0?'+':'')+tPrevB.toFixed(0)+'%</b>',
+        deltaTone: wTone(tPrevB),
+        chart: wCols(tcB, WCOL.trip),
+        strip: wStrip(gpair(function(x){ return x.wallet&&x.wallet.trip?x.wallet.trip.amt:null; }), meNm, WCOL.trip, wonS)
+      });
+    }
+    if (w.cash){
+      h += wMetric({
+        name:'현금성 복지 (자체재원)', color:WCOL.cash,
+        value:fmtWon(w.cash.amt), note:'세출예산의 '+pct(w.cash.rt,2),
+        strip: wStrip(gpair(function(x){ return x.wallet&&x.wallet.cash?x.wallet.cash.rt:null; }), meNm, WCOL.cash, pctS)
+      });
+    }
+    h += '</div><details class="metric"><summary>이 숫자들의 정의를 알려드려요</summary><div class="body">'
+      + '전부 2026년 본예산 편성액이에요. 단체장 몫은 따로 공시된 값이고, 막대의 빗금 칸은 한도 중 아직 안 쓴 몫이에요. '
+      + '행사·축제 비율의 분모는 세출예산액이고, 국외여비는 국외업무여비 + 국제화여비예요. '
+      + '현금성 복지는 301-03 사회보장적수혜금(지방재원) 기준이에요. 분포 점은 같은 '+type+' 유형 '+peers.length+'곳 전부고, 인구 규모 차이는 감안해서 보세요. '
+      + '편성 주체는 2025년 말의 전임 집행부예요.</div></details></section>';
   }
 
   /* 비교함 + 공유 */

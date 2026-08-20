@@ -177,6 +177,52 @@ tbody tr:hover td, table tr:hover td{background:var(--bg2)}
 .stat .v{font-size:24px; font-weight:800; letter-spacing:-.04em; margin-top:3px; font-variant-numeric:tabular-nums}
 .metric{font-variant-numeric:tabular-nums; font-weight:700}
 
+/* ---------- 단체장의 지갑 차트 ---------- */
+.wallet{border-top:2px solid var(--ink)}
+.wmet{border-bottom:1px solid var(--rule2); padding:16px 0 18px}
+.wmet:last-child{border-bottom:0}
+.wtop{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.wname{font-size:14.5px; font-weight:800; letter-spacing:-.035em; display:flex; align-items:center; gap:8px}
+.wname i{width:10px; height:10px; border-radius:3px; background:var(--wc); flex-shrink:0}
+.wnum{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.wnum b{font-size:22px; font-weight:800; letter-spacing:-.05em}
+.wnum span{font-size:12px; color:var(--ink3)}
+.wdelta{font-size:12.5px; color:var(--ink2); margin-top:5px}
+.wdelta.neg b{color:var(--neg)} .wdelta.pos b{color:var(--pos)}
+.wstack{display:flex; height:24px; border-radius:4px; overflow:hidden; margin-top:12px; background:var(--rule2)}
+.wstack i{display:block; height:100%}
+.wstack i.rest{background:repeating-linear-gradient(135deg,var(--rule2),var(--rule2) 5px,var(--bg2) 5px,var(--bg2) 10px)}
+.wlegend{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--ink3); margin-top:8px; align-items:center}
+.wlegend i{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:-1px}
+.wlegend b{color:var(--ink2); font-weight:700}
+.wcap{margin-left:auto; color:var(--ink2); font-weight:600}
+.wcols{display:flex; align-items:flex-end; gap:12px; height:112px; margin-top:14px}
+.wcol{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:5px; height:100%; min-width:0}
+.wcol i{display:block; width:100%; max-width:96px; border-radius:4px 4px 0 0; background:var(--wc)}
+.wcol b{font-size:12.5px; font-weight:800; letter-spacing:-.035em; white-space:nowrap}
+.wcol span{font-size:11.5px; color:var(--ink3); font-weight:600; text-align:center; line-height:1.35}
+.wcol span em{display:block; font-style:normal; font-size:10.5px; color:var(--ink3); font-weight:500}
+.wstrip{position:relative; height:46px; margin-top:16px}
+.wline{position:absolute; left:0; right:0; top:22px; height:2px; background:var(--rule2); border-radius:2px}
+.wdot{position:absolute; top:18px; width:9px; height:9px; margin-left:-4.5px; border-radius:50%; background:var(--rule)}
+.wdot.me{width:15px; height:15px; top:15px; margin-left:-7.5px; background:var(--wc); box-shadow:0 0 0 3px var(--bg)}
+.wstrip.dense .wdot{width:5px; height:5px; top:20px; margin-left:-2.5px; opacity:.85}
+.wstrip.dense .wdot.me{width:13px; height:13px; top:16px; margin-left:-6.5px; opacity:1}
+.wend{position:absolute; top:34px; font-size:10.5px; color:var(--ink3); letter-spacing:-.02em}
+.wend.l{left:0} .wend.r{right:0; text-align:right}
+.wme{position:absolute; top:-1px; transform:translateX(-50%); font-size:11.5px; font-weight:800; color:var(--wc); white-space:nowrap}
+.wme.e-l{transform:none; left:0 !important}
+.wme.e-r{transform:translateX(-100%); left:100% !important}
+@media(max-width:560px){
+  .wnum b{font-size:19px}
+  .wcols{height:96px; gap:8px}
+  .wcol b{font-size:11.5px}
+  .wcol span{font-size:10.5px}
+  .wlegend{gap:9px; font-size:11px}
+  .wcap{margin-left:0; width:100%}
+  .wend, .wme{font-size:10.5px}
+}
+
 /* ---------- sido card ---------- */
 .sido-card{display:block; background:var(--panel); border:1px solid var(--rule); border-radius:var(--r); padding:15px;
   box-shadow:var(--sh); transition:.18s}
@@ -414,9 +460,9 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <main id="app" class="wrap"><div class="skel">불러오는 중이에요…</div></main>
 <div id="gtip"></div>
 <footer><div class="wrap" id="foot"></div></footer>
-<script src="data.js?v=56"></script>
-<script src="map.js?v=56"></script>
-<script src="app.js?v=56"></script>
+<script src="data.js?v=57"></script>
+<script src="map.js?v=57"></script>
+<script src="app.js?v=57"></script>
 <script>
 /* 화면 전체 핀치/더블탭 확대 차단 (iOS Safari는 user-scalable=no를 무시) */
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){
