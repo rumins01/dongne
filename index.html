@@ -425,7 +425,6 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <header class="top"><div class="wrap">
   <div class="brand" onclick="location.hash=''"><span class="dot">🏘️</span><em>우리동네</em> 이야기</div>
   <div class="sub">숫자로 보는 내 동네</div>
-  <div class="right tn">전국 226개 시군구 · 2026년 8월 기준</div>
 </div></header>
 <nav class="tabs"><div class="wrap">
   <a href="#" data-tab="home"><span class="emo">🏘️</span>홈</a>
@@ -466,8 +465,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=66',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=66',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=67',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=67',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -524,7 +523,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=66';
+      var s=document.createElement('script'); s.src='app.js?v=67';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);

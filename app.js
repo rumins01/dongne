@@ -910,7 +910,7 @@ function renderSpot(param){
 }
 
 /* ---------- 세금 성적표 · 지도 (도감 지도 스펙 이식) ---------- */
-var GRADE_FILL = {A:'#0E9384', B:'#3E63DD', C:'#DD9A31', D:'#D1495B'}; /* 청→황→적: 적록색약 대응 */
+var GRADE_FILL = {A:'#0E9384', B:'#3E63DD', C:'#EE7A1E', D:'#D1495B'}; /* 청→황→적: 적록색약 대응 */
 var MAPIDX = null;
 function buildMapIdx(){
   if (MAPIDX) return MAPIDX;
