@@ -311,6 +311,7 @@ function renderHome(){
   var h = '';
 
   /* 1. 히어로 */
+  h += '<div id="admStat" class="admstat" hidden></div>';
   h += '<section class="hero">';
   h += '<h1>내 동네, 숫자로 보면<br>어떤 곳일까요?</h1>';
   h += '<p class="lead">세금은 잘 걷히고 있는지, 우리 지역 단체장은 무얼 약속했는지, 가게는 늘고 있는지 줄고 있는지. 전국 '+fmtN(withRep.length)+'개 시·군·구를 같은 잣대로 비교해 드려요.</p>';
@@ -454,6 +455,7 @@ function renderHome(){
   h += '<p class="muted" style="margin-top:10px; font-size:13px">세종은 기초 지자체가 없고, 제주는 행정시(제주시·서귀포시)만 있어서 시·도 페이지에서 함께 보여드려요.</p></section>';
 
   APP.innerHTML = h;
+  renderAdminStat();
   bindSearch();
   /* 미니맵 클릭 */
   bindHomeMap();
@@ -1253,6 +1255,50 @@ function backCdOf(key){
 var CAT_EMO = {"DVD·비디오방": "📼", "PC방": "🖥️", "간판·광고업": "🪧", "겨울스포츠시설": "⛷️", "골프연습장": "🏌️", "골프장": "⛳", "공연장": "🎭", "관광식당": "🍽️", "관광펜션": "🏡", "관광호텔": "🏨", "구내식당": "🍱", "노래방": "🎤", "농어촌민박": "🌾", "단란주점": "🍻", "담배소매(편의점 프록시)": "🏪", "당구장": "🎱", "대형마트·백화점": "🏬", "도시민박(게스트하우스)": "🛏️", "동물병원": "🐾", "동물생산업(번식장)": "🐕", "동물약국": "💊", "동물카페·전시": "🐇", "멀티방·복합게임장": "🕹️", "목욕탕·사우나": "🛁", "무도장·댄스학원": "💃", "미용실": "💇", "박물관·미술관": "🖼️", "반려동물 장묘": "🕊️", "병원": "🏥", "산후조리원": "🍼", "상조업": "🕯️", "성인게임장": "🎰", "세탁소": "🧺", "수영장": "🏊", "숙박업": "🛎️", "승마장": "🐎", "안경점": "👓", "안마·의료유사업": "💆", "애견미용": "✂️", "애견호텔·유치원": "🐩", "약국": "💊", "여행사": "✈️", "영화관": "🎬", "오락실": "👾", "요트장": "⛵", "유흥주점": "🍸", "의원": "🩺", "이발소": "💈", "인쇄소": "🖨️", "일반음식점": "🍚", "자판기": "🥤", "전통사찰": "🛕", "정육점": "🥩", "제과점": "🥐", "종량제봉투 판매소": "🗑️", "종합체육시설": "🏟️", "주유소": "⛽", "즉석판매(반찬·떡집)": "🍢", "직업소개소": "📋", "체육도장(태권도 등)": "🥋", "카페·휴게음식점": "☕", "캠핑장": "🏕️", "테마파크": "🎡", "펫샵": "🐶", "편의점 상비약": "🩹", "한옥체험": "🏯", "헬스장": "🏋️"};
 function catEmo(c){ return CAT_EMO[c] || '🏬'; }
 function catLabel(c){ return '<span class="cemo">'+catEmo(c)+'</span>'+esc(c); }
+/* ---------- 방문 집계 (관리자 전용 표시) ---------- */
+var CNT_BASE = 'https://abacus.jasoncameron.dev';
+var CNT_NS = 'dongne-r7k2';
+function cntDay(){
+  var d = new Date(Date.now() + 9*3600*1000);   /* KST */
+  return 'd' + d.toISOString().slice(0,10).replace(/-/g,'');
+}
+function isAdmin(){ try { return localStorage.getItem('uv_admin')==='1'; } catch(e){ return false; } }
+function cntFetch(verb, key){
+  return fetch(CNT_BASE+'/'+verb+'/'+CNT_NS+'/'+key, {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : {value:null}; })
+    .then(function(j){ return (j && typeof j.value==='number') ? j.value : null; })
+    .catch(function(){ return null; });
+}
+function countVisit(){
+  try {
+    if (sessionStorage.getItem('uv_seen')==='1') return;
+    sessionStorage.setItem('uv_seen','1');
+  } catch(e){}
+  if (isAdmin()) return;                      /* 내 방문은 집계하지 않음 */
+  cntFetch('hit','total'); cntFetch('hit',cntDay());
+}
+function renderAdminStat(){
+  var box = document.getElementById('admStat');
+  if (!box) return;
+  if (!isAdmin()){ box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = '<span class="admlab">방문</span><span class="admv">불러오는 중</span>';
+  Promise.all([cntFetch('get','total'), cntFetch('get',cntDay())]).then(function(v){
+    var tot = v[0]==null?0:v[0], tod = v[1]==null?0:v[1];
+    box.innerHTML = '<span class="admlab">👁 나만 보임</span>'
+      + '<span class="admv">오늘 <b class="tn">'+fmtN(tod)+'</b></span>'
+      + '<span class="admv">전체 <b class="tn">'+fmtN(tot)+'</b></span>'
+      + '<button class="admoff" onclick="adminOff()" title="이 기기에서 숨기기">✕</button>';
+  });
+}
+function adminOff(){ try{ localStorage.removeItem('uv_admin'); }catch(e){} renderAdminStat(); }
+(function(){
+  try {
+    var q = location.search || '';
+    if (/[?&]admin=on\b/.test(q)) localStorage.setItem('uv_admin','1');
+    else if (/[?&]admin=off\b/.test(q)) localStorage.removeItem('uv_admin');
+  } catch(e){}
+})();
 function catAggScope(N, pick){
   var agg={};
   Object.keys(N.units).forEach(function(k){
@@ -1643,6 +1689,7 @@ function route(){
   if (hsh.indexOf('#/brand')===0) return renderBrand();
   return renderHome();
 }
+countVisit();
 window.addEventListener('hashchange', route);
 renderFoot();
 route();
