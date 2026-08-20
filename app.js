@@ -1094,14 +1094,20 @@ var GRADE_FILL = {A:'#0E9384', B:'#3E63DD', C:'#EE7A1E', D:'#D1495B'}; /* 청→
 var MAPIDX = null;
 function buildMapIdx(){
   if (MAPIDX) return MAPIDX;
-  var ALIAS = {'인천|남구':'인천|미추홈구'}; // 2018 지도의 옛 이름
+  var ALIAS = {'인천|남구':'인천|미추홀구'}; // 2018 지도의 옛 이름 (2018년 미추홀구로 바뀜)
   var byKey = {};
   Object.keys(D.basic).forEach(function(cd){ var b=D.basic[cd]; byKey[b.sido+'|'+b.name]=cd; });
   MAPIDX = window.__MAP__.mun.map(function(u){
     var key = ALIAS[u.s+'|'+u.n] || (u.s+'|'+u.n);
     var cd = byKey[key] || null;
     var govKey = (u.s==='광주'||u.s==='전남') ? '전남광주' : u.s;
-    return {u:u, cd:cd, b: cd?D.basic[cd]:null, govKey:govKey};
+    var b = cd ? D.basic[cd] : null, wide = false;
+    if (!b){
+      /* 세종·제주처럼 기초 지자체가 없는 곳은 광역 기준 등급으로 칠해요 (툴팁에 광역 기준이라고 밝힘) */
+      var sd = D.sido[u.s];
+      if (sd && sd.report) { b = {name:u.n, sido:u.s, report:sd.report, jarip25:sd.jarip&&sd.jarip[2025]?(sd.jarip[2025].r2!=null?sd.jarip[2025].r2:sd.jarip[2025].r1):null, pc26:sd.pc&&sd.pc[2026]?sd.pc[2026]:null}; wide = true; }
+    }
+    return {u:u, cd:cd, b:b, govKey:govKey, wide:wide};
   });
   return MAPIDX;
 }
@@ -1114,7 +1120,7 @@ function renderTax(zoomSido){
   ['서울','경기','인천','부산','대구','광주','대전','울산','세종','강원','충북','충남','전북','전남','경북','경남','제주'].forEach(function(s2){ h += '<button data-z="'+s2+'">'+s2+'</button>'; });
   h += '</div>';
   h += '<div id="map-wrap"><svg id="map" role="img" aria-label="전국 시군구 세금 성적표 지도"></svg></div>';
-  h += '<div class="legend-g tn"><span><i style="background:'+GRADE_FILL.A+'"></i>A (백분위 평균 75+)</span><span><i style="background:'+GRADE_FILL.B+'"></i>B (50+)</span><span><i style="background:'+GRADE_FILL.C+'"></i>C (25+)</span><span><i style="background:'+GRADE_FILL.D+'"></i>D</span><span><i style="background:#C4BFB8"></i>데이터 없음·광역직할</span><span class="muted">확대하면 시·군·구 이름이 보여요 · 등급은 색과 마우스오버로 확인해요</span></div>';
+  h += '<div class="legend-g tn"><span><i style="background:'+GRADE_FILL.A+'"></i>A (백분위 평균 75+)</span><span><i style="background:'+GRADE_FILL.B+'"></i>B (50+)</span><span><i style="background:'+GRADE_FILL.C+'"></i>C (25+)</span><span><i style="background:'+GRADE_FILL.D+'"></i>D</span><span><i style="background:#C4BFB8"></i>데이터 없음</span><span class="muted">세종·제주는 기초 지자체가 없어 광역 기준 등급이에요</span><span class="muted">확대하면 시·군·구 이름이 보여요 · 등급은 색과 마우스오버로 확인해요</span></div>';
   h += '<details class="metric" style="margin-top:12px"><summary>등급은 어떻게 매기나요</summary><div class="body">'+esc(D.meta.notes.grade)+'<br>일반구(수원 장안구 등)는 모시 단위로 합쳐 칠했고, 군위군은 2023년 대구 편입을 반영했어요. 경계 데이터 출처는 페이지 맨 아래에 모아뒀어요.</div></details>';
   h += '</section>';
   APP.innerHTML = h;
@@ -1188,7 +1194,11 @@ function initMap(zoomSido){
     var x = idx[+p.dataset.i];
     var g = x.b && x.b.report && x.b.report.grade;
     var showNm = (x.u.s==='인천'&&x.u.n==='남구')?'미추홈구':x.u.n;
-    tip.innerHTML = '<b>'+esc(x.u.s)+' '+esc(showNm)+'</b>' + (x.b ? ' — '+(g?('등급 '+g):'등급 없음')+'<br>자립도 '+pct(x.b.jarip25)+' · 1인당 지방세 '+(x.b.pc26?fmtManFromChun(x.b.pc26.pc):'—') : '<br>행정시·직할 — 광역 페이지로 이동');
+    tip.innerHTML = '<b>'+esc(x.u.s)+' '+esc(showNm)+'</b>'
+      + (x.b ? ' — '+(g?('등급 '+g+(x.wide?' (광역 기준)':'')):'등급 없음')
+               +'<br>자립도 '+pct(x.b.jarip25)+' · 1인당 지방세 '+(x.b.pc26?fmtManFromChun(x.b.pc26.pc):'—')
+               +(x.wide?'<br>기초 지자체가 없어 광역 기준으로 표시해요':'')
+             : '<br>행정시·직할 — 광역 페이지로 이동');
     tip.style.display='block';
     var tw = tip.offsetWidth, th = tip.offsetHeight;
     var lx = e.clientX+14, ly = e.clientY+14;
