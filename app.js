@@ -152,6 +152,65 @@ function gauge(pctv, color){
   var p=Math.max(0,Math.min(100,pctv||0));
   return '<div class="bar" style="height:6px; margin-top:4px"><i style="width:'+p.toFixed(1)+'%; background:'+(color||'var(--accent)')+'"></i></div>';
 }
+/* 지도 안에서만 두 손가락(핀치) 확대·축소. 화면 전체 확대는 계속 막아 둔다. */
+function mapPinch(svg, opt){
+  /* opt = {get:function(){return 현재 viewBox 배열}, set:function(vb){}, base:기준 viewBox, min:배율하한, max:배율상한} */
+  var P = {}, g = null, st = {active:false};
+  function pair(){
+    var k = Object.keys(P);
+    return k.length >= 2 ? [P[k[0]], P[k[1]]] : null;
+  }
+  function span(t){ return Math.max(1, Math.hypot(t[0].x-t[1].x, t[0].y-t[1].y)); }
+  function down(e){
+    if (e.pointerType === 'mouse') return;
+    P[e.pointerId] = {x:e.clientX, y:e.clientY};
+    var t = pair(); if (!t) return;
+    var r = svg.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    g = {d:span(t), r:r, vb:opt.get().slice(), cx:(t[0].x+t[1].x)/2, cy:(t[0].y+t[1].y)/2};
+    st.active = true;
+    try { svg.setPointerCapture(e.pointerId); } catch(err){}
+  }
+  function move(e){
+    if (!g || !P[e.pointerId]) return;
+    P[e.pointerId] = {x:e.clientX, y:e.clientY};
+    var t = pair(); if (!t) return;
+    if (e.cancelable) e.preventDefault();
+    var f = g.d / span(t); /* 벌리면 f<1 → 확대 */
+    var lo = opt.base[2]*opt.min, hi = opt.base[2]*opt.max;
+    var nw = g.vb[2]*f;
+    if (nw < lo) f = lo/g.vb[2];
+    else if (nw > hi) f = hi/g.vb[2];
+    nw = g.vb[2]*f;
+    var nh = g.vb[3]*f;
+    /* 제스처 시작 시 손가락 중심이 가리키던 지점을, 지금 손가락 중심 자리에 그대로 붙여 둔다 */
+    var ax = g.vb[0] + (g.cx-g.r.left)/g.r.width*g.vb[2];
+    var ay = g.vb[1] + (g.cy-g.r.top)/g.r.height*g.vb[3];
+    var mx = (t[0].x+t[1].x)/2, my = (t[0].y+t[1].y)/2;
+    opt.set([ax - (mx-g.r.left)/g.r.width*nw, ay - (my-g.r.top)/g.r.height*nh, nw, nh]);
+  }
+  function up(e){
+    if (!svg.isConnected){ detach(); return; } /* 화면이 바뀜 뒤 남은 창 리스너 정리 */
+    if (!P[e.pointerId]) return;
+    delete P[e.pointerId];
+    if (Object.keys(P).length >= 2) return;
+    g = null;
+    if (st.active) setTimeout(function(){ st.active = false; }, 80); /* 손 뗀 직후 탭 이동 오작동 방지 */
+  }
+  function detach(){
+    P = {}; g = null; st.active = false;
+    window.removeEventListener('pointerup', up, true);
+    window.removeEventListener('pointercancel', up, true);
+  }
+  svg.addEventListener('pointerdown', down, true);
+  svg.addEventListener('pointermove', move, true);
+  /* 포인터를 지도 밖에서 떼도 제스처가 끝나도록 창에서 받는다.
+     lostpointercapture는 쓰지 않는다 — 터치는 path에 암묵적 캐프처가 걸려 제스처 중간에 터진다. */
+  window.addEventListener('pointerup', up, true);
+  window.addEventListener('pointercancel', up, true);
+  svg.addEventListener('touchmove', function(e){ if (e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault(); }, {passive:false});
+  return st;
+}
 function miniMap(){
   if (!window.__MAP__) return '';
   var M=window.__MAP__, idx=buildMapIdx();
@@ -214,20 +273,28 @@ function bindHomeMap(){
     var my = cur[1] + (e.clientY-r.top)/r.height*cur[3];
     zoom(e.deltaY>0 ? 1.18 : 1/1.18, mx, my);
   }, {passive:false});
+  var PZ = mapPinch(svg, {get:function(){ return cur; }, set:setVB, base:VB0, min:0.04, max:1.2});
   var drag = null;
   svg.addEventListener('pointerdown', function(e){
-    drag = {x:e.clientX, y:e.clientY, vb:cur.slice(), target:e.target.closest&&e.target.closest('path.mn'), moved:false, id:e.pointerId};
+    if (PZ.active){ drag=null; return; }
+    /* 홈 지도는 한 손가락을 페이지 스크롤에 양보한다 — 지도 이동은 마우스나 두 손가락으로 */
+    drag = {x:e.clientX, y:e.clientY, vb:cur.slice(), target:e.target.closest&&e.target.closest('path.mn'), moved:false, id:e.pointerId, pan:e.pointerType!=='touch'};
   });
   svg.addEventListener('pointermove', function(e){
+    if (PZ.active){ drag=null; return; }
     if (!drag) return;
     var dx=e.clientX-drag.x, dy=e.clientY-drag.y;
-    if (!drag.moved && Math.hypot(dx,dy) > 4){ drag.moved=true; try{ svg.setPointerCapture(drag.id); }catch(err){} svg.style.cursor='grabbing'; }
-    if (drag.moved){
+    if (!drag.moved && Math.hypot(dx,dy) > 4){
+      drag.moved=true;
+      if (drag.pan){ try{ svg.setPointerCapture(drag.id); }catch(err){} svg.style.cursor='grabbing'; }
+    }
+    if (drag.moved && drag.pan){
       var u = drag.vb[2]/(svg.clientWidth||460);
       setVB([drag.vb[0]-dx*u, drag.vb[1]-dy*u, drag.vb[2], drag.vb[3]]);
     }
   });
   svg.addEventListener('pointerup', function(){
+    if (PZ.active){ drag=null; svg.style.cursor='pointer'; return; }
     if (drag && !drag.moved && drag.target){
       var x = idx[+drag.target.dataset.i];
       location.hash = x.cd ? '#/gu/'+x.cd : '#/sido/'+x.govKey;
@@ -392,7 +459,7 @@ function renderHome(){
   h += '<button class="footnote-btn" style="margin-top:10px; align-self:flex-start" onclick="var e=document.getElementById(\'gnote\'); e.hidden=!e.hidden">❓ 등급은 어떻게 매기나요</button>';
   h += '<div class="fine" id="gnote" hidden>'+esc(D.meta.notes.grade)+'</div>';
   h += '</div>';
-  h += '<div class="rule-card taxright"><div class="maptop"><span class="map-jump" id="hmZoom"><button data-hz="in" aria-label="지도 확대">+</button><button data-hz="out" aria-label="지도 축소">−</button><button data-hz="reset" aria-label="전체 보기">전국</button></span><span class="muted" style="font-size:12px">'+(HOME_GRADE?'<b style="color:'+GRADE_FILL[HOME_GRADE]+'">'+HOME_GRADE+'등급</b>만 표시 중':'지도를 누르면 그 동네로 가요')+'</span></div>'+miniMap()+'</div>';
+  h += '<div class="rule-card taxright"><div class="maptop"><span class="map-jump" id="hmZoom"><button data-hz="in" aria-label="지도 확대">+</button><button data-hz="out" aria-label="지도 축소">−</button><button data-hz="reset" aria-label="전체 보기">전국</button></span><span class="muted" style="font-size:12px">'+(HOME_GRADE?'<b style="color:'+GRADE_FILL[HOME_GRADE]+'">'+HOME_GRADE+'등급</b>만 표시 중':'지도를 누르면 그 동네로 가요 · 두 손가락으로 확대·축소')+'</span></div>'+miniMap()+'</div>';
   h += '</div></section>';
 
   /* 5+6. 민선 9기 광역 16곳 (공약 구성 + 카드) */
@@ -1042,7 +1109,7 @@ function renderTax(zoomSido){
   document.title = '세금 성적표 지도 — 우리동네 이야기';
   var idx = buildMapIdx();
   var h = '<section style="margin-top:18px"><h1>🗺️ 전국 세금 지도</h1>';
-  h += '<p class="muted" style="margin:6px 0 14px">시·군·구 226곳을 동급끼리 채점한 등급이에요. 지도를 누르면 그 동네 페이지로 가요. 드래그로 이동(터치 동작), 휠이나 +/− 버튼으로 확대해요.</p>';
+  h += '<p class="muted" style="margin:6px 0 14px">시·군·구 226곳을 동급끼리 채점한 등급이에요. 지도를 누르면 그 동네 페이지로 가요. 끌어서 옴기고, <b>두 손가락을 벌리거나 오무려 확대·축소</b>해요. 휠과 +/− 버튼도 돼요.</p>';
   h += '<div class="map-jump" id="mjump"><button data-zm="in" aria-label="확대">+</button><button data-zm="out" aria-label="축소">−</button><button data-z="">전국</button>';
   ['서울','경기','인천','부산','대구','광주','대전','울산','세종','강원','충북','충남','전북','전남','경북','경남','제주'].forEach(function(s2){ h += '<button data-z="'+s2+'">'+s2+'</button>'; });
   h += '</div>';
@@ -1131,11 +1198,14 @@ function initMap(zoomSido){
   });
   svg.addEventListener('pointerleave', function(){ tip.style.display='none'; });
   window.addEventListener('blur', function(){ tip.style.display='none'; });
+  var PZ = mapPinch(svg, {get:function(){ return curVB; }, set:setVB, base:VB0, min:0.03, max:1.6});
   var drag = null;
   svg.addEventListener('pointerdown', function(e){
+    if (PZ.active){ drag=null; return; }
     drag = {x:e.clientX, y:e.clientY, vb:curVB.slice(), target:e.target.closest&&e.target.closest('path.mn'), moved:false, id:e.pointerId};
   });
   svg.addEventListener('pointermove', function(e){
+    if (PZ.active){ drag=null; tip.style.display='none'; return; }
     if (!drag) return;
     var dx = e.clientX-drag.x, dy = e.clientY-drag.y;
     if (!drag.moved && Math.hypot(dx,dy) > 4){ drag.moved = true; try{ svg.setPointerCapture(drag.id); }catch(err){} svg.style.cursor='grabbing'; }
@@ -1145,6 +1215,7 @@ function initMap(zoomSido){
     }
   });
   svg.addEventListener('pointerup', function(e){
+    if (PZ.active){ drag=null; svg.style.cursor='grab'; return; }
     if (drag && !drag.moved && drag.target){
       tip.style.display='none';
       var x = idx[+drag.target.dataset.i];

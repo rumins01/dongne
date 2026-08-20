@@ -267,6 +267,7 @@ tbody tr:hover td, table tr:hover td{background:var(--bg2)}
 @media(max-width:860px){.taxrow{grid-template-columns:1fr}}
 .taxleft,.taxright{background:var(--panel); border:1px solid var(--rule); border-radius:var(--r); padding:16px; box-shadow:var(--sh);
   display:flex; flex-direction:column; min-height:0}
+#homeMap{touch-action:pan-y} /* 한 손가락은 페이지 스크롤, 두 손가락은 지도 확대·축소 */
 #homeMap .mn{stroke:var(--panel); stroke-width:.7; cursor:pointer; transition:opacity .15s}
 #homeMap .mn:hover{opacity:1 !important; stroke:var(--ink); stroke-width:1.4}
 #homeMap .sd{fill:none; stroke:var(--ink3); stroke-width:.9; opacity:.5; pointer-events:none}
@@ -661,7 +662,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=79';
+      var s=document.createElement('script'); s.src='app.js?v=81';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);
