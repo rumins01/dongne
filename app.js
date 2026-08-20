@@ -328,7 +328,7 @@ function renderHome(){
   var trip = S.filter(function(s){return s.wallet&&s.wallet.trip&&s.wallet.trip.prev22;}).map(function(s){ return {k:s.k, d:(s.wallet.trip.amt/s.wallet.trip.prev22.amt-1)*100, amt:s.wallet.trip.amt}; }).sort(function(a,b){return b.d-a.d;});
   var cdOf = function(b){ return '#/gu/'+b.cd; };
   var chHi = byCh[byCh.length-1];
-  h += '<section><h2>데이터 인사이트 <small>원자료에서 자동으로 찾아낸 사실 · 눌러서 자세히</small></h2><div class="kpirow" id="insights">';
+  h += '<section><h2>데이터 인사이트</h2><div class="kpirow" id="insights">';
   h += kpiCard('인구', '+'+pu[0].dp.toFixed(0)+'%', 'pos', '<b>'+esc(pu[0].name)+'</b> 12년 인구 증가 · 전국 1위', cdOf(pu[0]));
   h += kpiCard('세금 체납', (chHi.report.chRatio/byCh[0].report.chRatio).toFixed(0)+'배', 'neg', '<b>'+esc(byCh[0].name)+'</b> '+byCh[0].report.chRatio.toFixed(2)+'% vs <b>'+esc(chHi.name)+'</b> '+chHi.report.chRatio.toFixed(1)+'%', cdOf(chHi));
   h += kpiCard('단체장의 지갑', '+'+trip[0].d.toFixed(0)+'%', 'neg', '<b>'+esc(trip[0].k)+'</b> 국외여비 4년 증가 · 2026 편성', '#/sido/'+(trip[0].k==='광주'||trip[0].k==='전남'?'전남광주':trip[0].k));
