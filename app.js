@@ -616,36 +616,101 @@ function sidoBody(sk, subTitle){
   return h;
 }
 
+function sidoVals(metric){
+  var arr=[];
+  Object.keys(D.sido).forEach(function(sk){ var v=metric(D.sido[sk], sk); if(v!=null && !isNaN(v)) arr.push(v); });
+  return arr.sort(function(a,b){ return a-b; });
+}
+function rankStrip(vals, mine, rankTxt){
+  if (!vals.length || mine==null) return '';
+  var mn=vals[0], mx=vals[vals.length-1], sp=(mx-mn)||1;
+  var med=vals[Math.floor(vals.length/2)];
+  function pos(x){ return Math.max(0, Math.min(100, (x-mn)/sp*100)); }
+  var h='<div class="rstrip"><span class="rline"></span>';
+  vals.forEach(function(x){ h+='<i class="rt" style="left:'+pos(x).toFixed(1)+'%"></i>'; });
+  h+='<i class="rmed" style="left:'+pos(med).toFixed(1)+'%"></i>';
+  h+='<i class="rme" style="left:'+pos(mine).toFixed(1)+'%"></i></span></div>';
+  h+='<div class="rlab"><span>적게 씀</span><b>'+esc(rankTxt||'')+'</b><span>많이 씀</span></div>';
+  return h;
+}
+function miniBars(rows){
+  var mx=0; rows.forEach(function(r){ if(r.v>mx) mx=r.v; });
+  if(!mx) mx=1;
+  var h='<div class="mbars">';
+  rows.forEach(function(r){
+    h+='<div class="mbar'+(r.hl?' hl':'')+'"><span class="mbl">'+esc(r.label)+'</span>';
+    h+='<span class="mbt"><i style="width:'+(r.v/mx*100).toFixed(1)+'%"></i></span>';
+    h+='<b class="mbv tn">'+r.txt+'</b></div>';
+    if (r.sub) h+='<div class="mbsub">'+r.sub+'</div>';
+  });
+  return h+'</div>';
+}
 function walletSection(s, sk){
   var w = s.wallet || {};
   var rkGiwan = sidoRank(function(x){ return x.wallet&&x.wallet.giwan ? x.wallet.giwan.chief : null; });
   var rkFesta = sidoRank(function(x){ return x.wallet&&x.wallet.festa ? x.wallet.festa.rt : null; });
   var rkTrip  = sidoRank(function(x){ return x.wallet&&x.wallet.trip ? x.wallet.trip.amt : null; });
   var h = '<section><h2><span class="emo">👛</span>단체장의 지갑 <small>2026년 예산 편성 기준 · 동급(광역 17곳) 비교</small></h2><div class="grid g3">';
+
   if (w.giwan){
     var gPrev = w.giwan.prev ? ((w.giwan.chief/w.giwan.prev.chief-1)*100) : null;
+    var etc = Math.max(0, (w.giwan.total||0) - (w.giwan.chief||0) - (w.giwan.vice||0));
+    var gt = w.giwan.total || 1;
     h += '<div class="rule-card tn"><h3>기관운영 업무추진비</h3>';
-    h += '<div class="stat" style="margin-top:8px"><b>'+fmtWon(w.giwan.chief)+'</b><span>단체장 몫 편성액 · 광역 '+rkGiwan.n+'곳 중 '+(rkGiwan.m[sk]||'—')+'위</span></div>';
-    h += '<div class="row" style="display:flex;justify-content:space-between;border-top:1px dashed var(--rule2);margin-top:10px;padding-top:6px;font-size:12.5px"><span>부단체장 몫</span><b>'+fmtWon(w.giwan.vice)+'</b></div>';
-    h += '<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>편성 총액 / 한도</span><b>'+fmtWon(w.giwan.total)+' / '+fmtWon(w.giwan.limit)+'</b></div>';
-    h += '<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>2023 대비 단체장 몫</span><b class="'+(gPrev>0?'neg':'pos')+'">'+(gPrev==null?'—':(gPrev>0?'+':'')+gPrev.toFixed(1)+'%')+'</b></div></div>';
+    h += '<div class="wbig"><b>'+fmtWon(w.giwan.chief)+'</b><span>단체장 몫 · 광역 '+rkGiwan.n+'곳 중 '+(rkGiwan.m[sk]||'—')+'위</span></div>';
+    h += '<div class="wlab">편성 총액 '+fmtWon(w.giwan.total)+'을 누가 쓰나</div>';
+    h += '<div class="stackbar">';
+    h += '<i style="width:'+((w.giwan.chief||0)/gt*100).toFixed(1)+'%; background:var(--accent)" title="단체장"></i>';
+    h += '<i style="width:'+((w.giwan.vice||0)/gt*100).toFixed(1)+'%; background:var(--pos)" title="부단체장"></i>';
+    h += '<i style="width:'+(etc/gt*100).toFixed(1)+'%; background:var(--rule)" title="실국장 등"></i></div>';
+    h += '<div class="legend-g" style="font-size:11.5px; margin-top:6px"><span><i style="background:var(--accent)"></i>단체장 '+fmtWon(w.giwan.chief)+'</span><span><i style="background:var(--pos)"></i>부단체장 '+fmtWon(w.giwan.vice)+'</span><span><i style="background:var(--rule)"></i>그 외 '+fmtWon(etc)+'</span></div>';
+    if (w.giwan.limit){
+      var used = (w.giwan.total/w.giwan.limit*100);
+      h += '<div class="wlab" style="margin-top:12px">한도 대비 편성률</div>';
+      h += '<div class="gaugerow"><span class="gtrack"><i style="width:'+Math.min(100,used).toFixed(1)+'%; background:'+(used>95?'var(--neg)':'var(--accent)')+'"></i></span><b class="tn">'+used.toFixed(0)+'%</b></div>';
+      h += '<div class="fine" style="margin-top:2px">'+fmtWon(w.giwan.total)+' / 한도 '+fmtWon(w.giwan.limit)+'</div>';
+    }
+    if (gPrev!=null) h += '<div class="wrow"><span>2023 대비 단체장 몫</span><b class="'+(gPrev>0?'neg':'pos')+'">'+(gPrev>0?'+':'')+gPrev.toFixed(1)+'%</b></div>';
+    h += '</div>';
   }
+
   if (w.festa){
     h += '<div class="rule-card tn"><h3>행사·축제 경비</h3>';
-    h += '<div class="stat" style="margin-top:8px"><b>'+fmtWon(w.festa.amt)+'</b><span>세출 대비 '+pct(w.festa.rt,2)+' · 비율 '+rkFesta.n+'곳 중 '+(rkFesta.m[sk]||'—')+'위</span></div>';
-    h += '<table style="margin-top:10px"><tr><th>연도</th><th class="right">편성액</th><th class="right">비율</th></tr>';
-    if (w.festa.prev18) h += '<tr><td>2018</td><td class="right">'+fmtWon(w.festa.prev18.amt)+'</td><td class="right">'+pct(w.festa.prev18.rt,2)+'</td></tr>';
-    if (w.festa.prev22) h += '<tr><td>2022</td><td class="right">'+fmtWon(w.festa.prev22.amt)+'</td><td class="right">'+pct(w.festa.prev22.rt,2)+'</td></tr>';
-    h += '<tr class="hl"><td>2026</td><td class="right">'+fmtWon(w.festa.amt)+'</td><td class="right">'+pct(w.festa.rt,2)+'</td></tr></table></div>';
+    h += '<div class="wbig"><b>'+fmtWon(w.festa.amt)+'</b><span>세출 대비 '+pct(w.festa.rt,2)+' · 비율 '+rkFesta.n+'곳 중 '+(rkFesta.m[sk]||'—')+'위</span></div>';
+    var frows=[];
+    if (w.festa.prev18) frows.push({label:'2018', v:w.festa.prev18.amt, txt:fmtWon(w.festa.prev18.amt), sub:'세출 대비 '+pct(w.festa.prev18.rt,2)});
+    if (w.festa.prev22) frows.push({label:'2022', v:w.festa.prev22.amt, txt:fmtWon(w.festa.prev22.amt), sub:'세출 대비 '+pct(w.festa.prev22.rt,2)});
+    frows.push({label:'2026', v:w.festa.amt, txt:fmtWon(w.festa.amt), sub:'세출 대비 '+pct(w.festa.rt,2), hl:true});
+    h += '<div class="wlab" style="margin-top:12px">해마다 얼마씩 잡았나</div>'+miniBars(frows);
+    h += '<div class="wlab" style="margin-top:12px">광역 17곳 중 우리 위치 <span class="muted" style="font-weight:400">세출 대비 비율</span></div>';
+    h += rankStrip(sidoVals(function(x){ return x.wallet&&x.wallet.festa?x.wallet.festa.rt:null; }), w.festa.rt, rkFesta.n+'곳 중 '+(rkFesta.m[sk]||'—')+'위');
+    h += '</div>';
   }
+
   if (w.trip || w.cash){
     h += '<div class="rule-card tn">';
     if (w.trip){
       var tPrev = w.trip.prev22 ? ((w.trip.amt/w.trip.prev22.amt-1)*100) : null;
-      h += '<h3>국외여비</h3><div class="stat" style="margin-top:8px"><b>'+fmtWon(w.trip.amt)+'</b><span>총액 '+rkTrip.n+'곳 중 '+(rkTrip.m[sk]||'—')+'위 · 2022 대비 '+(tPrev==null?'—':(tPrev>0?'+':'')+tPrev.toFixed(0)+'%')+'</span></div>';
+      h += '<h3>국외여비</h3>';
+      h += '<div class="wbig"><b>'+fmtWon(w.trip.amt)+'</b><span>총액 '+rkTrip.n+'곳 중 '+(rkTrip.m[sk]||'—')+'위</span></div>';
+      var trows=[];
+      if (w.trip.prev22) trows.push({label:'2022', v:w.trip.prev22.amt, txt:fmtWon(w.trip.prev22.amt)});
+      trows.push({label:'2026', v:w.trip.amt, txt:fmtWon(w.trip.amt), hl:true});
+      h += '<div class="wlab" style="margin-top:10px">4년 새 변화'+(tPrev==null?'':' <b class="'+(tPrev>0?'neg':'pos')+'">'+(tPrev>0?'+':'')+tPrev.toFixed(0)+'%</b>')+'</div>'+miniBars(trows);
+      h += '<div class="wlab" style="margin-top:12px">광역 17곳 중 우리 위치 <span class="muted" style="font-weight:400">총액</span></div>';
+      h += rankStrip(sidoVals(function(x){ return x.wallet&&x.wallet.trip?x.wallet.trip.amt:null; }), w.trip.amt, rkTrip.n+'곳 중 '+(rkTrip.m[sk]||'—')+'위');
     }
     if (w.cash){
-      h += '<h3 style="margin-top:14px">현금성 복지 (자체)</h3><div class="stat" style="margin-top:6px"><b>'+fmtWon(w.cash.amt)+'</b><span>세출 대비 '+pct(w.cash.rt,2)+'</span></div>';
+      h += '<h3 style="margin-top:16px">현금성 복지 (자체)</h3>';
+      h += '<div class="wbig"><b>'+fmtWon(w.cash.amt)+'</b><span>세출 대비 '+pct(w.cash.rt,2)+'</span></div>';
+      if (w.cash.amt>0){
+        var cvals = sidoVals(function(x){ return x.wallet&&x.wallet.cash?x.wallet.cash.rt:null; });
+        var rkCash = sidoRank(function(x){ return x.wallet&&x.wallet.cash ? x.wallet.cash.rt : null; });
+        h += '<div class="wlab" style="margin-top:10px">광역 17곳 중 우리 위치</div>';
+        h += rankStrip(cvals, w.cash.rt, rkCash.n+'곳 중 '+(rkCash.m[sk]||'—')+'위');
+      } else {
+        h += '<div class="fine">자체 재원 현금성 지원 편성이 없어요.</div>';
+      }
     }
     h += '</div>';
   }

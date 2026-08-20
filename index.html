@@ -5,14 +5,15 @@
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="icon" href="favicon.svg?v=2" type="image/svg+xml">
+<link rel="icon" href="favicon.png?v=2" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-64.png?v=2" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <meta name="theme-color" content="#2456E8">
 <title>우리동네 이야기 — 세금·예산·상권·안전 공공데이터 리포트</title>
 <meta name="description" content="민선 9기 광역단체장의 공약과 2026년 예산, 시군구 226곳 세금 성적표, 전국 67개 업종의 개폐업까지. 공공데이터 원본으로 읽는 우리동네 이야기.">
 <meta property="og:title" content="우리동네 이야기 - 단체장의 약속과 예산, 세금 성적표, 가게 흥망사">
 <meta property="og:description" content="민선 9기 단체장 공약 87건과 2026 예산, 시군구 226곳 세금 성적표, 전국 67개 업종의 흥망까지. 공공데이터 원본으로 읽는 동네 이야기.">
-<link rel="icon" href="favicon.svg?v=1" type="image/svg+xml">
-<link rel="icon" href="favicon.png?v=1" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
 <link rel="canonical" href="https://rumins01.github.io/dongne/">
 <meta property="og:url" content="https://rumins01.github.io/dongne/">
 <meta property="og:image" content="https://rumins01.github.io/dongne/og.png?v=3">
@@ -346,6 +347,40 @@ details.metric summary::-webkit-details-marker{display:none}
 #gtip{position:fixed; z-index:60; pointer-events:none; background:var(--ink); color:var(--bg); font-size:12px; padding:7px 10px;
   border-radius:8px; box-shadow:var(--sh-h); display:none; letter-spacing:-.01em; line-height:1.45}
 
+
+/* ---------- 단체장의 지갑 ---------- */
+.wbig{margin-top:9px}
+.wbig b{display:block; font-size:27px; font-weight:800; letter-spacing:-.045em; line-height:1.15}
+.wbig span{display:block; font-size:11.5px; color:var(--ink3); font-weight:600; margin-top:3px; line-height:1.4}
+.wlab{font-size:11.5px; font-weight:700; color:var(--ink2); margin-bottom:6px; letter-spacing:-.02em}
+.wrow{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-top:10px;
+  padding-top:8px; border-top:1px solid var(--rule2)}
+.wrow span{color:var(--ink3)}
+.stackbar{display:flex; height:12px; border-radius:3px; overflow:hidden; background:var(--rule2)}
+.stackbar i{display:block; height:100%}
+.gaugerow{display:flex; align-items:center; gap:8px}
+.gtrack{flex:1; height:8px; background:var(--rule2); border-radius:999px; overflow:hidden}
+.gtrack i{display:block; height:100%; border-radius:999px}
+.gaugerow b{font-size:13px; font-weight:800; letter-spacing:-.03em; width:34px; text-align:right}
+.mbars{display:block}
+.mbar{display:flex; align-items:center; gap:8px; padding:3px 0}
+.mbl{width:34px; font-size:11.5px; color:var(--ink3); font-weight:600; flex-shrink:0}
+.mbt{flex:1; height:9px; background:var(--rule2); border-radius:3px; overflow:hidden}
+.mbt i{display:block; height:100%; background:var(--ink3); border-radius:3px}
+.mbar.hl .mbt i{background:var(--accent)}
+.mbv{width:62px; text-align:right; font-size:12.5px; font-weight:700; letter-spacing:-.03em}
+.mbar.hl .mbv{font-weight:800; color:var(--accent)}
+.mbsub{font-size:10.5px; color:var(--ink3); text-align:right; margin:-2px 0 4px}
+.rstrip{position:relative; height:22px; margin-top:2px}
+.rline{position:absolute; left:0; right:0; top:10px; height:2px; background:var(--rule2); border-radius:2px; display:block}
+.rstrip i{position:absolute; transform:translateX(-50%)}
+.rstrip .rt{top:5px; width:2px; height:12px; background:var(--rule); border-radius:1px}
+.rstrip .rmed{top:2px; width:2px; height:18px; background:var(--ink3); opacity:.55; border-radius:1px}
+.rstrip .rme{top:3px; width:12px; height:12px; border-radius:50%; background:var(--accent);
+  border:2.5px solid var(--panel); box-shadow:0 0 0 1.5px var(--accent)}
+.rlab{display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:var(--ink3); margin-top:1px}
+.rlab b{font-size:11.5px; color:var(--ink); font-weight:800; letter-spacing:-.02em}
+
 /* ---------- timeline ---------- */
 .timeline{position:relative; padding-left:20px}
 .timeline::before{content:''; position:absolute; left:5px; top:6px; bottom:6px; width:2px; background:var(--rule)}
@@ -527,7 +562,6 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <body>
 <header class="top"><div class="wrap">
   <div class="brand" onclick="location.hash=''"><span class="dot">🏘️</span><em>우리동네</em> 이야기</div>
-  <div class="sub">숫자로 보는 내 동네</div>
   <button class="themebtn" id="themeBtn" onclick="cycleTheme()" aria-label="화면 밝기 바꾸기"></button>
 </div></header>
 <nav class="tabs"><div class="wrap">
@@ -569,8 +603,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=78',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=78',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=79',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=79',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -627,7 +661,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=78';
+      var s=document.createElement('script'); s.src='app.js?v=79';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);
