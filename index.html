@@ -126,7 +126,7 @@ a.rule-card:hover{box-shadow:var(--sh-h); border-color:var(--rule); transform:tr
 /* ---------- hero ---------- */
 .hero{padding:52px 0 40px; text-align:center; position:relative}
 .hero::before{content:''; position:absolute; top:-40px; bottom:0; left:50%; transform:translateX(-50%);
-  width:100vw; background:radial-gradient(52% 100% at 50% 0%, var(--accent-soft) 0%, transparent 72%);
+  width:100vw; background:radial-gradient(115% 108% at 50% 0%, var(--accent-soft) 0%, var(--accent-soft) 22%, transparent 82%);
   z-index:-1; pointer-events:none}
 .hero .eyebrow{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--accent);
   background:var(--accent-soft); padding:6px 13px; border-radius:999px; margin-bottom:16px; letter-spacing:-.02em}
@@ -614,8 +614,8 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
 <script>
 (function(){
   var STEPS = [
-    {f:'data.js?v=82',            n:540379,  t:'세금과 공약 데이터'},
-    {f:'map.js?v=82',             n:843371,  t:'전국 지도'},
+    {f:'data.js?v=83',            n:540379,  t:'세금과 공약 데이터'},
+    {f:'map.js?v=83',             n:843371,  t:'전국 지도'},
     {f:'commerce-nation.json?v=3',n:3975483, t:'전국 상권 67개 업종'},
     {f:'brands-region.json?v=1',  n:121900,  t:'브랜드 지역 분포'},
     {f:'brands.json?v=2',         n:19699,   t:'브랜드 순위'}
@@ -672,7 +672,7 @@ footer{border-top:1px solid var(--rule); margin-top:48px; padding:28px 0 44px; f
       });
       return runScript(text[0]).then(function(){ return runScript(text[1]); });
     }).then(function(){
-      var s=document.createElement('script'); s.src='app.js?v=82';
+      var s=document.createElement('script'); s.src='app.js?v=83';
       s.onload=function(){ var b=document.getElementById('boot'); if(b){ b.classList.add('gone'); setTimeout(function(){ b.remove(); },260); } };
       s.onerror=function(){ fail('화면 코드를 불러오지 못했어요.'); };
       document.body.appendChild(s);
