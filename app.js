@@ -298,7 +298,7 @@ function fillSidoBiz(N){
       if (!best || d > best.d) best = {c:c, d:d, rate:lo.rate};
     });
     var bEl = row.getElementsByTagName('b')[0];
-    if (bEl) bEl.innerHTML = best ? esc(best.c)+' <span class="pos">+'+best.d.toFixed(1)+'%p</span>' : '—';
+    if (bEl) bEl.innerHTML = best ? catEmo(best.c)+' '+esc(best.c)+' <span class="pos">+'+best.d.toFixed(1)+'%p</span>' : '—';
   }
 }
 function renderHome(){
@@ -466,8 +466,8 @@ function renderHome(){
     var up1 = ca[0], dn1 = ca[ca.length-1];
     var swap = function(id, html){ var el=document.getElementById(id); if(!el) return; el.outerHTML = html; };
     swap('kNet', kpiCard('상권', fmtN(x25-o25)+'곳', 'neg', '2025년 전국 음식점 <b>순감</b> · 개업 '+fmtN(o25)+' vs 폐업 '+fmtN(x25), '#/spot'));
-    swap('kUp', kpiCard('뜨는 업종', '+'+up1.rate.toFixed(1)+'%', 'pos', '<b>'+esc(up1.c)+'</b>'+iga(up1.c)+' 가장 빨리 늘어요 · 영업 중 '+fmtN(up1.open)+'곳', '#/spot'));
-    swap('kDn', kpiCard('지는 업종', dn1.rate.toFixed(1)+'%', 'neg', '<b>'+esc(dn1.c)+'</b>'+iga(dn1.c)+' 가장 빨리 사라져요 · '+fmtN(dn1.open)+'곳 남음', '#/spot'));
+    swap('kUp', kpiCard('뜨는 업종', '+'+up1.rate.toFixed(1)+'%', 'pos', '<b>'+catEmo(up1.c)+' '+esc(up1.c)+'</b>'+iga(up1.c)+' 가장 빨리 늘어요 · 영업 중 '+fmtN(up1.open)+'곳', '#/spot'));
+    swap('kDn', kpiCard('지는 업종', dn1.rate.toFixed(1)+'%', 'neg', '<b>'+catEmo(dn1.c)+' '+esc(dn1.c)+'</b>'+iga(dn1.c)+' 가장 빨리 사라져요 · '+fmtN(dn1.open)+'곳 남음', '#/spot'));
     fillSidoBiz(N);
   }).catch(function(){});
 }
@@ -757,7 +757,7 @@ function renderBiz(gu){
   cats.forEach(function(c){
     var g = C.byCat[c] && C.byCat[c].gu[gu]; if (!g) return;
     var coh = C.byCat[c].cohort1920;
-    h += '<tr><td>'+esc(c)+'</td><td class="right">'+g.open.toLocaleString()+'</td><td class="right">'+(g.openByYear[2025]||0).toLocaleString()+'</td><td class="right">'+(g.closeByYear[2025]||0).toLocaleString()+'</td><td class="right">'+(g.medianLifeM?Math.round(g.medianLifeM/12*10)/10+'년':'—')+'</td><td class="right">'+(coh&&coh.s5!=null?pct(coh.s5):'—')+'</td></tr>';
+    h += '<tr><td>'+catLabel(c)+'</td><td class="right">'+g.open.toLocaleString()+'</td><td class="right">'+(g.openByYear[2025]||0).toLocaleString()+'</td><td class="right">'+(g.closeByYear[2025]||0).toLocaleString()+'</td><td class="right">'+(g.medianLifeM?Math.round(g.medianLifeM/12*10)/10+'년':'—')+'</td><td class="right">'+(coh&&coh.s5!=null?pct(coh.s5):'—')+'</td></tr>';
   });
   h += '</table><div class="fine">* 생존율은 서울 전체 2019~2020년 개업 코호트가 5년을 버틴 비율이에요(구 단위가 아니라 서울 기준). 중위 영업기간은 이미 폐업한 가게들 기준이라 살아있는 가게가 길게 버틸수록 실제 수명은 이보다 길어요.</div></div></section>';
 
@@ -1250,6 +1250,9 @@ function backCdOf(key){
 
 
 
+var CAT_EMO = {"DVD·비디오방": "📼", "PC방": "🖥️", "간판·광고업": "🪧", "겨울스포츠시설": "⛷️", "골프연습장": "🏌️", "골프장": "⛳", "공연장": "🎭", "관광식당": "🍽️", "관광펜션": "🏡", "관광호텔": "🏨", "구내식당": "🍱", "노래방": "🎤", "농어촌민박": "🌾", "단란주점": "🍻", "담배소매(편의점 프록시)": "🏪", "당구장": "🎱", "대형마트·백화점": "🏬", "도시민박(게스트하우스)": "🛏️", "동물병원": "🐾", "동물생산업(번식장)": "🐕", "동물약국": "💊", "동물카페·전시": "🐇", "멀티방·복합게임장": "🕹️", "목욕탕·사우나": "🛁", "무도장·댄스학원": "💃", "미용실": "💇", "박물관·미술관": "🖼️", "반려동물 장묘": "🕊️", "병원": "🏥", "산후조리원": "🍼", "상조업": "🕯️", "성인게임장": "🎰", "세탁소": "🧺", "수영장": "🏊", "숙박업": "🛎️", "승마장": "🐎", "안경점": "👓", "안마·의료유사업": "💆", "애견미용": "✂️", "애견호텔·유치원": "🐩", "약국": "💊", "여행사": "✈️", "영화관": "🎬", "오락실": "👾", "요트장": "⛵", "유흥주점": "🍸", "의원": "🩺", "이발소": "💈", "인쇄소": "🖨️", "일반음식점": "🍚", "자판기": "🥤", "전통사찰": "🛕", "정육점": "🥩", "제과점": "🥐", "종량제봉투 판매소": "🗑️", "종합체육시설": "🏟️", "주유소": "⛽", "즉석판매(반찬·떡집)": "🍢", "직업소개소": "📋", "체육도장(태권도 등)": "🥋", "카페·휴게음식점": "☕", "캠핑장": "🏕️", "테마파크": "🎡", "펫샵": "🐶", "편의점 상비약": "🩹", "한옥체험": "🏯", "헬스장": "🏋️"};
+function catEmo(c){ return CAT_EMO[c] || '🏬'; }
+function catLabel(c){ return '<span class="cemo">'+catEmo(c)+'</span>'+esc(c); }
 function catAggScope(N, pick){
   var agg={};
   Object.keys(N.units).forEach(function(k){
@@ -1296,7 +1299,7 @@ function catRow(c, g){
   if (!g) return '';
   var o=+g.ob['2025']||0, x=+g.cb['2025']||0, net=o-x;
   var rate = g.open ? net/g.open*100 : null;
-  return '<tr><td>'+esc(c)+'</td><td class="right">'+fmtN(g.open)+'</td><td class="right opt">'+fmtN(o)+'</td><td class="right opt">'+fmtN(x)+'</td>'
+  return '<tr><td>'+catLabel(c)+'</td><td class="right">'+fmtN(g.open)+'</td><td class="right opt">'+fmtN(o)+'</td><td class="right opt">'+fmtN(x)+'</td>'
     +'<td class="right"><b class="'+(net>=0?'pos':'neg')+'">'+(net>0?'+':'')+fmtN(net)+'</b></td>'
     +'<td class="right '+(rate>=0?'pos':'neg')+'">'+(rate!=null?(rate>0?'+':'')+rate.toFixed(1)+'%':'—')+'</td>'
     +'<td class="right">'+(g.med?Math.round(g.med/12*10)/10+'년':'—')+'</td></tr>';
@@ -1462,7 +1465,7 @@ function renderSpotN(param){
         if (!scopeName) nh += '<p class="muted" style="margin:-6px 0 10px">위에서 지역을 고르면 그 지역 숫자와 전국 평균을 나란히 볼 수 있어요.</p>';
         nh += '<div class="rule-card" style="overflow-x:auto"><table class="tn"><tr><th>업종</th><th class="right">영업 중</th><th class="right opt">2025 개업</th><th class="right opt">2025 폐업</th><th class="right">순증감</th><th class="right">'+(scopeName?esc(scopeName):'전국')+' 증감률</th>'+(scopeName?'<th class="right opt">전국</th><th class="right">차이</th>':'')+'</tr>';
         rows.forEach(function(r){
-          nh+='<tr><td>'+esc(r.c)+'</td><td class="right">'+fmtN(r.open)+'</td><td class="right opt">'+fmtN(r.o)+'</td><td class="right opt">'+fmtN(r.x)+'</td><td class="right"><b class="'+(r.net>=0?'pos':'neg')+'">'+(r.net>0?'+':'')+fmtN(r.net)+'</b></td>';
+          nh+='<tr><td>'+catLabel(r.c)+'</td><td class="right">'+fmtN(r.open)+'</td><td class="right opt">'+fmtN(r.o)+'</td><td class="right opt">'+fmtN(r.x)+'</td><td class="right"><b class="'+(r.net>=0?'pos':'neg')+'">'+(r.net>0?'+':'')+fmtN(r.net)+'</b></td>';
           var rw = Math.min(Math.abs(r.rate),50)/50*100;
           nh+='<td><div class="tbar mini"><span class="track"><i style="width:'+rw.toFixed(0)+'%; background:'+(r.rate>=0?'var(--pos)':'var(--neg)')+'"></i></span><b class="tbv tn '+(r.rate>=0?'pos':'neg')+'">'+(r.rate>0?'+':'')+r.rate.toFixed(1)+'%</b></div></td>';
           if (scopeName){
