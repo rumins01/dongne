@@ -332,19 +332,22 @@ function renderHome(){
 
   /* 3. 세금 성적표 + 지도 */
   var GMEAN = {A:'재정이 튼튼해요', B:'무난한 편이에요', C:'조금 아쉬워요', D:'도움이 필요해요'};
-  var GEMO = {A:'🥇', B:'🙂', C:'😐', D:'🆘'};
   h += '<section id="gradeBox"><div class="sechead"><div><h2><span class="emo">📊</span>우리 동네 세금 성적표</h2><p class="lead" style="font-size:14.5px">재정자립도 · 체납 · 세수 성장, 세 가지를 같은 유형끼리 비교해 등급을 매겼어요. 등급을 누르면 그 동네만 골라 볼 수 있어요.</p></div><a class="footnote-btn" href="#/tax">큰 지도로 보기 →</a></div>';
   h += '<div class="taxrow">';
   h += '<div class="rule-card taxleft">';
-  h += '<div class="gcards">';
+  var gTot = dist.A+dist.B+dist.C+dist.D;
+  h += '<div class="gscale'+(HOME_GRADE?' sel':'')+'"><div class="gbar" role="group" aria-label="세금 성적표 등급 분포">';
   ['A','B','C','D'].forEach(function(g){
-    var on = HOME_GRADE===g, dim = HOME_GRADE && !on;
-    h += '<button class="gcard'+(on?' on':'')+(dim?' dim':'')+'" style="--gc:'+GRADE_FILL[g]+'" onclick="setHomeGrade(\''+(on?'':g)+'\')" aria-pressed="'+(on?'true':'false')+'">';
-    h += '<div class="ge">'+GEMO[g]+'</div><div class="gl">'+g+'</div>';
-    h += '<div class="gc tn">'+dist[g]+'<span>곳</span></div>';
-    h += '<div class="gd">'+GMEAN[g]+'</div></button>';
+    var on = HOME_GRADE===g;
+    h += '<button class="gseg'+(on?' on':'')+'" style="--gc:'+GRADE_FILL[g]+'; flex:'+dist[g]+' 0 44px" '
+      +  'onclick="setHomeGrade(\''+(on?'':g)+'\')" aria-pressed="'+(on?'true':'false')+'" '
+      +  'title="'+g+'등급 '+dist[g]+'곳 — '+GMEAN[g]+'">'
+      +  '<span class="sl">'+g+'</span><span class="sn">'+dist[g]+'</span></button>';
   });
-  h += '</div>';
+  h += '</div><p class="gmean">';
+  if (HOME_GRADE) h += '<span class="gsel" style="--gc:'+GRADE_FILL[HOME_GRADE]+'">'+HOME_GRADE+' · '+dist[HOME_GRADE]+'곳</span> '+GMEAN[HOME_GRADE];
+  else h += '<span>전체 <b>'+gTot+'곳</b> · 절반 넘는 <b>'+(dist.B+dist.C)+'곳</b>이 B·C예요. 막대를 누르면 그 등급만 볼 수 있어요.</span>';
+  h += '</p></div>';
   h += '<div class="filterlist" style="flex:1; min-height:0; overflow-y:auto; margin-top:12px">';
   if (HOME_GRADE){
     var hits = withRep.filter(function(b){ return b.report.grade===HOME_GRADE; })
@@ -391,7 +394,7 @@ function renderHome(){
   var jarAll = order.map(function(k){ var g=D.govs.filter(function(x){return x.key===k;})[0]; if(!g) return null;
     var s0=D.sido[(g.lofinKeys||[k])[0]]; return s0&&s0.jarip[2025]?(s0.jarip[2025].r2!=null?s0.jarip[2025].r2:s0.jarip[2025].r1):null; }).filter(function(x){return x!=null;});
   var jarMax = Math.max.apply(null, jarAll);
-  h += '<div class="grid g4">';
+  h += '<div class="grid g4 gridrule">';
   order.forEach(function(k){
     var gov = D.govs.filter(function(g){ return g.key===k; })[0]; if (!gov) return;
     var lks = gov.lofinKeys || [k];
@@ -435,16 +438,6 @@ function renderHome(){
     h += '</div></details>';
   });
   h += '<p class="muted" style="margin-top:10px; font-size:13px">세종은 기초 지자체가 없고, 제주는 행정시(제주시·서귀포시)만 있어서 시·도 페이지에서 함께 보여드려요.</p></section>';
-
-  /* 8. 데이터 인벤토리 */
-  h += '<section><h2><span class="emo">🗂️</span>어떤 데이터를 썼나요 <small>전부 공공데이터 원본이에요</small></h2><div class="rule-card" style="overflow-x:auto"><table class="tn"><tr><th>무엇</th><th>어디서</th><th>기준시점</th></tr>';
-  [['지방세 징수·체납·자립도·1인당 부담','행정안전부 지방재정365','2017~2024 결산 · 2025~2026 예산'],
-   ['2026 세입·세출예산, 업무추진비·행사축제·국외여비','지방재정365 재정데이터셋','2026 본예산 편성'],
-   ['광역단체장 16명·공약 '+pledgeN+'건','제9회 지방선거 결과 + 언론 보도(항목별 출처 링크)','2026-06-03 선거 · 07-01 취임'],
-   ['전국 상권 67개 업종·브랜드·주소 연대기','행정안전부 지방행정 인허가데이터','2026-08-17 (일 단위 갱신본)'],
-   ['시군구 경계','통계청 2018 시군구','2018 (행정구역 개편분은 별칭 처리)']
-  ].forEach(function(r){ h += '<tr><td>'+esc(r[0])+'</td><td class="muted">'+esc(r[1])+'</td><td>'+esc(r[2])+'</td></tr>'; });
-  h += '</table><div class="fine">모든 수치는 원자료에서 직접 계산했고, 화면마다 산식과 한계를 각주로 적어뒀어요. 결산(확정)과 예산(계획)을 섞지 않았습니다.</div></div></section>';
 
   APP.innerHTML = h;
   bindSearch();
@@ -512,7 +505,7 @@ function sidoBody(sk, subTitle){
 
   /* 예산 이야기 */
   var b = s.budget26;
-  h += '<section><h2><span class="emo">📐</span>예산 이야기 <small>2026년 본예산 · 지방재정365</small></h2><div class="grid g2">';
+  h += '<section><h2><span class="emo">📐</span>예산 이야기 <small>2026년 본예산 기준</small></h2><div class="grid g2">';
   h += '<div class="rule-card"><div class="grid g2 tn">';
   h += '<div class="stat"><b>'+fmtWon(b?b.total:null)+'</b><span>2026 세입예산 총계</span></div>';
   var growth = (b && s.budget22total) ? ((b.total/s.budget22total-1)*100) : null;
@@ -532,7 +525,7 @@ function sidoBody(sk, subTitle){
   var jr = s.jarip, jrYears = [2013,2016,2019,2022,2025];
   h += '<div class="rule-card"><h3>재정자립도 추이</h3><div class="muted" style="margin-bottom:8px">전체 살림에서 지방세·세외수입 등 스스로 버는 돈의 비율이에요.</div>';
   h += lineChart(jrYears.map(function(y){ return {x:String(y).slice(2)+"'", v: jr[y] ? (jr[y].r2!=null?jr[y].r2:jr[y].r1) : null}; }), {fmt:function(v){return v.toFixed(1)+'%';}, label:'재정자립도 추이'});
-  h += '<div class="fine">2016년부터는 세입과목 개편후 산식, 2013년은 개편전 산식이라 직접 비교엔 약간의 단차가 있어요. 예산(최종예산) 기준 · 지방재정365.</div></div>';
+  h += '<div class="fine">2016년부터는 세입과목 개편후 산식, 2013년은 개편전 산식이라 직접 비교엔 약간의 단차가 있어요. 예산(최종예산) 기준.</div></div>';
   h += '</div></section>';
 
   /* 세금 이야기 */
@@ -608,7 +601,7 @@ function walletSection(s, sk){
   h += '</div>';
   h += '<details class="metric"><summary>이 숫자들의 정의를 알려드려요</summary><div class="body">'
     + '· 전부 <b>2026년 본예산 편성액</b>이에요. 실제 집행액(결산)은 2027년에 확정돼요.<br>'
-    + '· 기관운영 업무추진비의 "단체장 몫"은 지방재정365가 단체장/부단체장/실국장 몫을 분리 공시한 값이에요.<br>'
+    + '· 기관운영 업무추진비의 "단체장 몫"은 단체장/부단체장/실국장 몫이 따로 공시된 값이에요.<br>'
     + '· 행사·축제 경비 비율의 분모는 세출예산액이에요. 국외여비 = 국외업무여비 + 국제화여비.<br>'
     + '· 현금성 복지는 301-03 사회보장적수혜금(지방재원) 통계목 기준 — 지자체가 조례 등으로 자체 지급하는 현금성 지원이에요.<br>'
     + '· 편성은 2025년 말 전임 집행부(민선 8기)가 했고, 현 단체장은 집행을 맡아요.</div></details>';
@@ -658,7 +651,7 @@ function renderGu(cd){
   if (popYears.length >= 2){
     var p0 = pcs[popYears[0]].pop, p1 = pcs[popYears[popYears.length-1]].pop;
     var dPop = (p1/p0-1)*100;
-    h += '<section><h2><span class="emo">👥</span>사람 이야기 <small>주민등록인구 · 지방재정365 연계값</small></h2><div class="grid g2">';
+    h += '<section><h2><span class="emo">👥</span>사람 이야기 <small>주민등록인구 기준</small></h2><div class="grid g2">';
     h += '<div class="rule-card"><h3>인구 추이</h3>'+lineChart(popYears.map(function(y){ return {x:String(y).slice(2)+"'", v: pcs[y].pop}; }), {fmt:function(v){ return v>=1e6?(v/1e6).toFixed(2)+'백만':Math.round(v/1e4)+'만'; }, label:'인구 추이'});
     h += '<div class="muted tn" style="margin-top:6px">'+popYears[0]+'년 대비 <b class="'+(dPop>=0?'pos':'neg')+'">'+(dPop>0?'+':'')+dPop.toFixed(1)+'%</b> · 현재 '+p1.toLocaleString()+'명</div>';
     h += '<div class="fine">인구가 줄면 같은 살림을 더 적은 사람이 나눠 지게 돼요 — 1인당 부담과 함께 보세요.</div></div>';
@@ -684,7 +677,7 @@ function renderGu(cd){
       h += '<div class="rule-card tn"><h3>시책추진 업무추진비</h3><div class="stat" style="margin-top:8px"><b>'+fmtWon(w.sichaek.total)+'</b><span>기준액 대비 '+pct(w.sichaek.rt,1)+'</span></div>'
         + (w.sichaek.prev?'<div style="display:flex;justify-content:space-between;font-size:12.5px;border-top:1px dashed var(--rule2);margin-top:10px;padding-top:6px"><span>2023 편성액</span><b>'+fmtWon(w.sichaek.prev.total)+'</b></div>':'')+'</div>';
     }
-    h += '</div><details class="metric"><summary>이 숫자들의 정의를 알려드려요</summary><div class="body">전부 2026년 본예산 편성액이에요. 단체장 몫은 지방재정365의 분리 공시 값이고, 행사·축제 비율의 분모는 세출예산액이에요. 편성 주체는 2025년 말의 전임 집행부예요.</div></details></section>';
+    h += '</div><details class="metric"><summary>이 숫자들의 정의를 알려드려요</summary><div class="body">전부 2026년 본예산 편성액이에요. 단체장 몫은 따로 공시된 값이고, 행사·축제 비율의 분모는 세출예산액이에요. 편성 주체는 2025년 말의 전임 집행부예요.</div></details></section>';
   }
 
   /* 비교함 + 공유 */
@@ -719,7 +712,7 @@ function renderBiz(gu){
   document.title = '서울 '+gu+' 상권 이야기 — 우리동네 이야기';
   var guCd = Object.keys(D.basic).filter(function(cd){ return D.basic[cd].sido==='서울' && D.basic[cd].name===gu; })[0];
   var h = '<div class="crumb"><a href="#">홈</a> › <a href="#/sido/서울">서울특별시</a> › '+(guCd?'<a href="#/gu/'+guCd+'">'+esc(gu)+'</a>':esc(gu))+' › 상권</div>';
-  h += '<section style="margin-top:8px"><h1>서울 '+esc(gu)+' 상권 이야기</h1><p class="muted">행정안전부 인허가 데이터의 개업·폐업 전 이력으로 계산했어요. 사장님이 바뀌어도 인허가가 유지되면 같은 가게로 세요.</p></section>';
+  h += '<section style="margin-top:8px"><h1>서울 '+esc(gu)+' 상권 이야기</h1><p class="muted">인허가 개업·폐업 전 이력으로 계산했어요. 사장님이 바뀌어도 인허가가 유지되면 같은 가게로 세요.</p></section>';
 
   var cats = ['일반음식점','카페·휴게음식점','제과점','미용실','헬스장','당구장','세탁소','담배소매(편의점 프록시)','숙박업'];
   h += '<section><h2><span class="emo">📇</span>업종별 현황과 수명 <small>영업 중 · 폐업 중위 영업기간</small></h2><div class="rule-card"><table class="tn"><tr><th>업종</th><th class="right">영업 중</th><th class="right">2025 개업</th><th class="right">2025 폐업</th><th class="right">폐업까지 중위</th><th class="right">서울 5년 생존율*</th></tr>';
@@ -939,7 +932,7 @@ function renderTax(zoomSido){
   h += '</div>';
   h += '<div id="map-wrap"><svg id="map" role="img" aria-label="전국 시군구 세금 성적표 지도"></svg></div>';
   h += '<div class="legend-g tn"><span><i style="background:'+GRADE_FILL.A+'"></i>A (백분위 평균 75+)</span><span><i style="background:'+GRADE_FILL.B+'"></i>B (50+)</span><span><i style="background:'+GRADE_FILL.C+'"></i>C (25+)</span><span><i style="background:'+GRADE_FILL.D+'"></i>D</span><span><i style="background:#C4BFB8"></i>데이터 없음·광역직할</span><span class="muted">확대하면 시·군·구 이름이 보여요 · 등급은 색과 마우스오버로 확인해요</span></div>';
-  h += '<details class="metric" style="margin-top:12px"><summary>등급 산식과 경계 데이터</summary><div class="body">'+esc(D.meta.notes.grade)+'<br>경계: 통계청 2018 시군구(southkorea-maps) — 순수 SVG 자체 투영으로 그려서 외부 지도 라이브러리가 없어요. 일반구(수원 장안구 등)는 모시 단위로 합쳐 칠했어요. 군위군은 2023년 대구 편입을 반영했어요.</div></details>';
+  h += '<details class="metric" style="margin-top:12px"><summary>등급은 어떻게 매기나요</summary><div class="body">'+esc(D.meta.notes.grade)+'<br>일반구(수원 장안구 등)는 모시 단위로 합쳐 칠했고, 군위군은 2023년 대구 편입을 반영했어요. 경계 데이터 출처는 페이지 맨 아래에 모아뒀어요.</div></details>';
   h += '</section>';
   APP.innerHTML = h;
   initMap(zoomSido ? decodeURIComponent(zoomSido) : null);
